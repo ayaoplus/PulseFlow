@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "timezone": "Asia/Shanghai",
+  "dashboardPath": "/ABSOLUTE/PATH/TO/todo/NOW.md",
+  "historyDir": "/ABSOLUTE/PATH/TO/todo/history",
+  "syncStatePath": "/ABSOLUTE/PATH/TO/todo/system/sync-state.json",
+  "agents": [
+    {
+      "name": "main",
+      "enabled": true,
+      "reportsDir": "/ABSOLUTE/PATH/TO/reports",
+      "agentsFilePath": "/ABSOLUTE/PATH/TO/AGENTS.md"
+    },
+    {
+      "name": "cortex",
+      "enabled": true,
+      "reportsDir": "/ABSOLUTE/PATH/TO/reports",
+      "agentsFilePath": "/ABSOLUTE/PATH/TO/AGENTS.md"
+    },
+    {
+      "name": "trading",
+      "enabled": true,
+      "reportsDir": "/ABSOLUTE/PATH/TO/reports",
+      "agentsFilePath": "/ABSOLUTE/PATH/TO/AGENTS.md"
+    }
+  ]
+}
