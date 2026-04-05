@@ -229,6 +229,7 @@ function main() {
   const rolledDashboard = read(dashboardPath);
   assert(rolledDashboard.includes('## AI USAGE THIS WEEK'), 'rollover should preserve usage panel');
   assert(rolledDashboard.includes('## TODAY\n- [ ] 保留到明天\n- [ ] 今日未完成'), 'rollover did not carry pending FOCUS/TODAY into TODAY');
+  assert(!rolledDashboard.includes('## TODAY\n- [ ]\n- [ ] 保留到明天'), 'rollover should not carry placeholder checkboxes into TODAY');
   assert(rolledDashboard.includes('## UP NEXT\n- [ ] 下周再做'), 'rollover did not preserve pending UP NEXT');
   assert(rolledDashboard.includes('## AI DONE TODAY\n- 暂无'), 'rollover did not reset AI DONE TODAY');
   const historyMonthPath = path.join(historyDir, `${rolloverFirst.archivedDate.slice(0, 7)}.md`);

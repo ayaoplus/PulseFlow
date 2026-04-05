@@ -53,6 +53,10 @@ function splitSections(text) {
   return { preamble, sections };
 }
 
+function isPlaceholderCheckbox(line) {
+  return /^- \[[ x]\]\s*$/.test(line.trim());
+}
+
 function classifyItems(lines) {
   const done = [];
   const pending = [];
@@ -60,6 +64,7 @@ function classifyItems(lines) {
   for (const raw of lines || []) {
     const line = raw.replace(/\s+$/, '');
     if (!line.trim()) continue;
+    if (isPlaceholderCheckbox(line)) continue;
     if (line.trimStart().startsWith('- [x]')) {
       done.push(line);
     } else {
