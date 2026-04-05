@@ -229,7 +229,8 @@ function replaceUsageSection(nowText, usageSection) {
     const head = nowText.slice(0, start).replace(/\s*$/, '');
     const tail = nextSectionIndex >= 0 ? nowText.slice(nextSectionIndex).replace(/^\s*/, '') : '';
     const separator = usageSection.trimEnd().endsWith('---') ? '\n' : '\n\n';
-    return `${head}\n\n${usageSection.trimEnd()}${tail ? `${separator}${tail}` : '\n'}`;
+    const prefix = head ? `${head}\n\n` : '';
+    return `${prefix}${usageSection.trimEnd()}${tail ? `${separator}${tail}` : '\n'}`;
   }
 
   const focusMarker = '\n## FOCUS\n';
@@ -238,11 +239,12 @@ function replaceUsageSection(nowText, usageSection) {
     const head = nowText.slice(0, idx).replace(/\s*$/, '');
     const tail = nowText.slice(idx).replace(/^\s*/, '');
     const separator = usageSection.trimEnd().endsWith('---') ? '\n' : '\n\n';
-    return `${head}\n\n${usageSection.trimEnd()}${separator}${tail}`;
+    const prefix = head ? `${head}\n\n` : '';
+    return `${prefix}${usageSection.trimEnd()}${separator}${tail}`;
   }
 
   const trimmed = nowText.replace(/\s*$/, '');
-  return `${trimmed}\n\n${usageSection.trimEnd()}\n`;
+  return trimmed ? `${trimmed}\n\n${usageSection.trimEnd()}\n` : `${usageSection.trimEnd()}\n`;
 }
 
 function weekLabel(rows) {

@@ -65,6 +65,7 @@ Defines:
 - enabled agents
 - report directories per agent
 - optional `agentsFilePath` per agent for managed AGENTS rule installation
+- optional `notifications.summaryCrons` settings for template-driven summary cron jobs
 
 ## Sync state
 

@@ -129,6 +129,7 @@ pulseflow/
     append_ai_log.js
     init_system.js
     install_agent_log_rules.js
+    install_summary_crons.js
     repair_system.js
     rollover_now.js
     sync_ai_done.js
@@ -137,9 +138,11 @@ pulseflow/
     agent-integration-template.md
     agent-log-format.md
     config-template.json
+    daily-close-template.md
     heartbeat-checklist.md
     history-template.md
     init-checklist.md
+    midday-summary-template.md
     now-template.md
     recovery-playbook.md
     release-checklist.md
@@ -156,11 +159,33 @@ pulseflow/
 
 - `append_ai_log.js` — append one AI work record
 - `install_agent_log_rules.js` — install/update managed logging rules in agent `AGENTS.md`
+- `install_summary_crons.js` — optionally install/update template-driven summary cron jobs from config
 - `init_system.js` — initialize a new PulseFlow instance
 - `repair_system.js` — repair missing runtime files
 - `sync_ai_done.js` — rebuild live AI sections
 - `rollover_now.js` — daily rollover and monthly archive update
 - `validate_system.js` — end-to-end validation in a temporary environment
+
+### Optional summary notifications
+
+PulseFlow can optionally install two template-driven summary cron jobs:
+
+- **15:30 midday summary** — summarize progress so far, judge the day, and suggest the second-half priorities
+- **00:05 daily close** — read the previous day's report when available, then generate a wrap-up with carry-forward tasks and token context
+
+These jobs are **not** installed by default during `init_system.js` because delivery targets are deployment-specific.
+
+Configure `notifications.summaryCrons` in `todo/system/config.json`, then run:
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_summary_crons.js
+```
+
+Review first with:
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_summary_crons.js --dry-run
+```
 
 ---
 
@@ -266,4 +291,25 @@ PulseFlow 故意把这两件事分开：
 - `Hit Rate = cacheRead / (input + cacheRead)`
 
 这样总量更直观，但缓存情况也不会被藏掉。
+
+### 可选定时总结通知
+
+PulseFlow 可以额外挂两条“模板 + LLM”的总结类 cron：
+
+- **15:30 日间总结** — 汇总当天截至当前的推进，做判断，并给出后半天建议
+- **00:05 前一日总结** — 优先读取前一日日报归档，再产出复盘式日结
+
+这两条 cron **不会** 在 `init_system.js` 中默认自动创建，因为通知目标、账号、时区、归档目录都属于部署侧决策。
+
+配置方式：在 `todo/system/config.json` 的 `notifications.summaryCrons` 中填好设置，然后执行：
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_summary_crons.js
+```
+
+建议先 dry run：
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_summary_crons.js --dry-run
+```
 

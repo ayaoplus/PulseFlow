@@ -31,6 +31,34 @@ If `AI_WORKLOG_CONFIG` is not set, the runtime resolves the install root from:
 
 For reusable installations, prefer `AI_WORKLOG_CONFIG` so the runtime does not depend on the caller's working directory.
 
+## Optional summary-cron installation
+
+PulseFlow can optionally install two template-driven summary cron jobs:
+
+- a 15:30 midday summary
+- a 00:05 previous-day wrap-up
+
+These jobs are intentionally **not** created by `init_system.js`.
+They depend on deployment-specific choices:
+
+- delivery channel and target
+- account id
+- timezone
+- which agent should own the jobs
+- where archives should be written
+
+Configure those values under `notifications.summaryCrons` in `config.json`, then run:
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_summary_crons.js
+```
+
+Use `--dry-run` first when reviewing changes:
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_summary_crons.js --dry-run
+```
+
 ## Privacy and publishability
 
 The primary JS runtime avoids embedding personal machine paths.

@@ -48,6 +48,7 @@ When setting up a new installation:
 8. Do not import old AI activity retroactively unless explicitly requested
 9. Create today's empty AI log files for enabled agents
 10. Install or refresh managed AI logging rules in configured `AGENTS.md` files
+11. If the installation explicitly wants scheduled summaries, fill `notifications.summaryCrons` in config and run `scripts/install_summary_crons.js`
 
 ## Agent write contract
 
@@ -134,7 +135,8 @@ At end of day or next-day rollover:
 
 - `scripts/append_ai_log.js` — appends one JSONL AI work record to today's per-agent log
 - `scripts/install_agent_log_rules.js` — installs or updates managed AI log rule blocks in configured `AGENTS.md` files
-- `scripts/init_system.js` — creates missing dashboard, history, config, state files, today's empty AI logs, and installs managed agent log rules when configured
+- `scripts/install_summary_crons.js` — optionally installs or updates template-driven summary cron jobs from `notifications.summaryCrons` in config
+- `scripts/init_system.js` — creates missing dashboard, history, config, state files, today's empty AI logs, and installs managed agent log rules when configured; it does not install cron jobs by default
 - `scripts/repair_system.js` — repairs missing runtime files without overwriting healthy ones
 - `scripts/rollover_now.js` — daily rollover script; archives yesterday's human done + AI snapshot, updates monthly usage summaries, clears `DONE`, resets `AI DONE TODAY`, carries unfinished tasks forward, and updates `rollover-state.json`
 - `scripts/sync_ai_done.js` — deterministic sync script for heartbeat or manual refresh; reads config, queries weekly usage, scans today's agent JSONL logs, rebuilds `AI USAGE THIS WEEK` plus `AI DONE TODAY`, and updates sync state
@@ -173,6 +175,18 @@ Install or refresh agent rules:
 AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_agent_log_rules.js
 ```
 
+Optionally install or update summary cron jobs after filling `notifications.summaryCrons` in config:
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_summary_crons.js
+```
+
+Review the planned cron changes first with:
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_summary_crons.js --dry-run
+```
+
 Recommended production invocation:
 
 ```bash
@@ -185,11 +199,13 @@ Read these files as needed:
 
 - `references/now-template.md` — base dashboard template
 - `references/history-template.md` — monthly archive template
-- `references/config-template.json` — install config shape
+- `references/config-template.json` — install config shape, including optional summary-cron settings
 - `references/sync-state-template.json` — sync checkpoint shape
 - `references/agent-log-format.md` — log schema and examples
 - `references/heartbeat-checklist.md` — heartbeat operating checklist
-- `docs/portability.md` — env overrides, installation assumptions, and release notes
+- `references/midday-summary-template.md` — optional 15:30 summary structure
+- `references/daily-close-template.md` — optional 00:05 previous-day wrap-up structure
+- `docs/portability.md` — env overrides, installation assumptions, and optional cron-install notes
 
 ## Output standard
 

@@ -130,6 +130,33 @@ function buildDefaultConfig(paths, timeZone = DEFAULT_TIME_ZONE) {
       reportsDir,
       agentsFilePath: '/ABSOLUTE/PATH/TO/AGENTS.md',
     })),
+    notifications: {
+      summaryCrons: {
+        enabled: false,
+        agentId: 'main',
+        timezone: timeZone,
+        archiveDir: '/ABSOLUTE/PATH/TO/reports',
+        delivery: {
+          channel: 'telegram',
+          to: 'telegram:CHAT_ID',
+          accountId: 'default',
+        },
+        midday: {
+          enabled: true,
+          name: 'PulseFlow Midday Summary',
+          description: '15:30 midday summary with analysis and next-step suggestions',
+          cron: '30 15 * * *',
+          thinking: 'medium',
+        },
+        dailyClose: {
+          enabled: true,
+          name: 'PulseFlow Daily Close',
+          description: '00:05 previous-day wrap-up and next-day handoff',
+          cron: '5 0 * * *',
+          thinking: 'medium',
+        },
+      },
+    },
   };
 }
 
