@@ -26,12 +26,6 @@
 - [ ] `FOCUS` resets
 - [ ] Rollover is idempotent
 
-## Repository hygiene
-- [ ] Source repo can live outside the OpenClaw workspace
-- [ ] Workspace skill path can be a symlink to the source repo
-- [ ] Runtime instance data is not mixed into the publishable source repo
-- [ ] README is bilingual and matches current runtime behavior
-
 ## Validation
 - [ ] `node scripts/validate_system.js` passes
 - [ ] A real `sync_ai_done.js` run succeeds against a live config

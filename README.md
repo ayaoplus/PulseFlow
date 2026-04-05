@@ -152,30 +152,6 @@ pulseflow/
     portability.md
 ```
 
-### Recommended source-of-truth layout
-
-For development and publishing, the recommended layout is:
-
-```text
-~/code/PulseFlow/                  # source repo
-~/.openclaw/workspaces/ayao/skills/pulseflow -> ~/code/PulseFlow
-```
-
-Why this is preferred:
-
-- one real source directory
-- GitHub uses the source repo directly
-- ClawHub publishes the source repo directly
-- OpenClaw runtime still reads the workspace skill path through a symlink
-
-Do **not** put runtime instance data into the source repo:
-
-- `NOW.md`
-- `history/YYYY-MM.md`
-- `system/config.json`
-- `system/sync-state.json`
-- `reports/*.jsonl`
-
 ### Scripts
 
 - `append_ai_log.js` — append one AI work record
@@ -301,30 +277,6 @@ PulseFlow 故意把这两件事分开：
 - `Hit Rate = cacheRead / (input + cacheRead)`
 
 这样总量更直观，但缓存情况也不会被藏掉。
-
-### 推荐源码结构
-
-推荐把源码放在：
-
-```text
-~/code/PulseFlow/                  # 源仓库
-~/.openclaw/workspaces/ayao/skills/pulseflow -> ~/code/PulseFlow
-```
-
-也就是：
-
-- `~/code/PulseFlow` 是唯一真源头
-- GitHub 直接推这个仓库
-- ClawHub 直接发布这个仓库
-- OpenClaw 通过 workspace 里的软链接继续运行
-
-**不要把实例运行数据放进仓库：**
-
-- `NOW.md`
-- `history/YYYY-MM.md`
-- `system/config.json`
-- `system/sync-state.json`
-- `reports/*.jsonl`
 
 ### 什么时候算发布级？
 

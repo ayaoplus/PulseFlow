@@ -47,15 +47,6 @@ Actions:
 3. Then run `node scripts/sync_ai_done.js`
 4. Inspect the relevant `history/YYYY-MM.md` file
 
-## Repository path problems
-
-If the skill is sourced from a repo such as `~/code/PulseFlow` and exposed through a workspace symlink:
-
-1. Confirm the symlink exists and points to the expected source repo
-2. Confirm `SKILL.md` is visible through the workspace skill path
-3. Run `node scripts/validate_system.js`
-4. Run one real sync against a live `AI_WORKLOG_CONFIG`
-
 ## Safety note
 
 `sync_ai_done.js` is safe to rerun.
