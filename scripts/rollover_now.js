@@ -127,7 +127,11 @@ function buildNow(preamble, usageSection, todayPending, upNextPending) {
   return out.join('\n');
 }
 
-function appendHistory(monthFile, archivedDate, humanDone, aiLines) {
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function buildHistoryEntry(archivedDate, humanDone, aiLines) {
   const lines = [];
   lines.push(`## ${archivedDate}`, '');
   lines.push('### Human Done');
@@ -143,10 +147,15 @@ function appendHistory(monthFile, archivedDate, humanDone, aiLines) {
     lines.push('- 暂无');
   }
   lines.push('');
+  return lines.join('\n');
+}
 
+function upsertHistory(monthFile, archivedDate, humanDone, aiLines) {
+  const entry = buildHistoryEntry(archivedDate, humanDone, aiLines).replace(/\s*$/, '');
   const current = exists(monthFile) ? readText(monthFile).replace(/\s*$/, '') : '';
-  const suffix = lines.join('\n');
-  const next = current ? `${current}\n\n${suffix}` : `${suffix}\n`;
+  const sectionPattern = new RegExp(`(^|\\n)## ${escapeRegExp(archivedDate)}\\n[\\s\\S]*?(?=\\n## \\d{4}-\\d{2}-\\d{2}\\n|$)`, 'gm');
+  const cleaned = current.replace(sectionPattern, '').replace(/\n{3,}/g, '\n\n').replace(/\s*$/, '');
+  const next = cleaned ? `${cleaned}\n\n${entry}` : entry;
   writeText(monthFile, `${next.replace(/\s*$/, '')}\n`);
 }
 
@@ -190,7 +199,7 @@ function main() {
   const nextToday = [...focus.pending, ...todaySection.pending];
 
   const monthFile = ensureMonthHistoryFile(historyDir, yesterday.slice(0, 7), yesterday, paths);
-  appendHistory(monthFile, yesterday, humanDone, aiLines);
+  upsertHistory(monthFile, yesterday, humanDone, aiLines);
   updateMonthlyUsageArchive(monthFile, usage, yesterday.slice(0, 7), yesterday);
 
   writeText(dashboardPath, buildNow(preamble, buildUsageSection(weeklyRows(usage, today)), nextToday, upNext.pending));

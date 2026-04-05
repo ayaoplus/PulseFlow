@@ -48,7 +48,7 @@ PulseFlow has four layers:
 
 4. **Monthly history**
    - `todo/history/YYYY-MM.md`
-   - stores completed human work, AI daily snapshots, daily usage summaries, and weekly usage summaries
+   - stores completed human work, AI daily snapshots, and one monthly daily usage summary
 
 ### Dashboard structure
 
@@ -96,7 +96,7 @@ Example:
 - archives completed human work into the month file
 - archives yesterday's AI snapshot into the month file
 - updates monthly daily usage summary
-- updates monthly weekly usage summary on week boundary
+- keeps one monthly daily usage summary updated as history accumulates
 - resets `DONE`
 - resets `AI DONE TODAY`
 - carries unfinished work forward
@@ -233,7 +233,7 @@ PulseFlow 可以拆成四层：
 
 4. **月度历史**
    - `todo/history/YYYY-MM.md`
-   - 存放人类已完成事项、AI 当日快照、每日用量汇总、每周用量汇总
+   - 存放人类已完成事项、AI 当日快照、以及月度每日用量汇总
 
 ### 面板结构
 
@@ -273,7 +273,7 @@ PulseFlow 可以拆成四层：
 - 把昨天的人类完成项归档进月文件
 - 把昨天的 AI 快照归档进月文件
 - 更新月文件里的每日用量汇总
-- 在跨周时更新月文件里的每周用量汇总
+- 维护月文件里的每日用量汇总
 - 清空 `DONE`
 - 重置 `AI DONE TODAY`
 - 把未完成事项带到新一天

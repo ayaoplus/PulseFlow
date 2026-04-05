@@ -55,7 +55,7 @@ The script:
 - archives human done items into the month file
 - archives the full `AI DONE TODAY` snapshot into the month file
 - updates the month file's `AI Usage Daily Summary`
-- updates the month file's `AI Usage Weekly Summary` on week boundary
+- updates the month file's single `AI Usage Daily Summary` block
 - clears `DONE`
 - resets `AI DONE TODAY`
 - rebuilds weekly usage for the new current week

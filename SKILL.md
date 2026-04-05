@@ -123,7 +123,7 @@ At end of day or next-day rollover:
 
 1. Append completed human tasks and the AI section snapshot into `todo/history/YYYY-MM.md`
 2. Update the month file's `AI Usage Daily Summary` block with finalized per-day usage rows
-3. On week boundary, update the same month file's `AI Usage Weekly Summary` block with the completed week table
+3. Keep one monthly `AI Usage Daily Summary` block in the month file; do not maintain a second weekly usage block there
 4. Reset `DONE` in `todo/NOW.md`
 5. Reset `AI DONE TODAY` for the new day on first sync
 6. Rebuild `AI USAGE THIS WEEK` for the new current week

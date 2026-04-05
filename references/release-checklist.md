@@ -20,7 +20,7 @@
 - [ ] Existing `DONE` is archived
 - [ ] AI snapshot is archived
 - [ ] Monthly daily usage summary is updated
-- [ ] Monthly weekly usage summary is updated on week boundary
+- [ ] Monthly daily usage summary is updated after rollover
 - [ ] `FOCUS` and `TODAY` unfinished items move into new `TODAY`
 - [ ] `UP NEXT` stays unchanged
 - [ ] `FOCUS` resets

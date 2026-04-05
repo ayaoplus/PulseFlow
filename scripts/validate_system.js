@@ -228,7 +228,7 @@ function main() {
   assert(historyText.includes('- [x] 已完成焦点任务'), 'history missing archived FOCUS item');
   assert(historyText.includes('- main: 完成 JS 同步脚本'), 'history missing AI snapshot');
   assert(historyText.includes('## AI Usage Daily Summary'), 'history missing monthly daily usage summary block');
-  assert(historyText.includes('## AI Usage Weekly Summary'), 'history missing monthly weekly usage summary block');
+  assert(!historyText.includes('## AI Usage Weekly Summary'), 'history should not contain a redundant monthly weekly usage summary block');
 
   const rolloverSecond = runScript('rollover_now.js', { ...envWithUsage, AI_WORKLOG_CONFIG: configPath });
   assert(rolloverSecond.skipped === true, 'rollover_now.js should skip repeated rollover on same day');

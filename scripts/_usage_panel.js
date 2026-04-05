@@ -172,34 +172,12 @@ function monthlyRows(summary, month, finalDate) {
     .map((date) => ({ date, ...map.get(date) }));
 }
 
-function completedWeeklyRows(summary, month, finalDate) {
-  return monthDates(month)
-    .filter((date) => date <= finalDate && weekdayIndex(date) === 0)
-    .map((date) => weeklyRows(summary, date));
-}
-
 function buildMonthlyDailyUsageBlock(summary, month, finalDate) {
   const rows = monthlyRows(summary, month, finalDate);
   return [
     '## AI Usage Daily Summary',
     buildUsageTable(rows, 'Month Total'),
   ].join('\n');
-}
-
-function buildMonthlyWeeklyUsageBlock(summary, month, finalDate) {
-  const weeks = completedWeeklyRows(summary, month, finalDate);
-  const lines = ['## AI Usage Weekly Summary'];
-
-  if (!weeks.length) {
-    lines.push('', '- 暂无');
-    return lines.join('\n');
-  }
-
-  for (const rows of weeks) {
-    lines.push('', `### Week ${weekLabel(rows)}`, buildUsageTable(rows, 'Week Total'));
-  }
-
-  return lines.join('\n');
 }
 
 function upsertManagedBlock(text, startMarker, endMarker, blockContent) {
@@ -213,11 +191,19 @@ function upsertManagedBlock(text, startMarker, endMarker, blockContent) {
   return `${trimmed}\n\n${wrapped}\n`;
 }
 
+function removeManagedBlock(text, startMarker, endMarker) {
+  if (!text.includes(startMarker) || !text.includes(endMarker)) {
+    return text;
+  }
+  const pattern = new RegExp(`\\n?${startMarker}[\\s\\S]*?${endMarker}\\n?`, 'm');
+  return text.replace(pattern, '\n').replace(/\n{3,}/g, '\n\n');
+}
+
 function updateMonthlyUsageArchive(monthFile, summary, month, finalDate) {
   const current = exists(monthFile) ? readText(monthFile) : '';
-  const withDaily = upsertManagedBlock(current, MONTHLY_DAILY_START, MONTHLY_DAILY_END, buildMonthlyDailyUsageBlock(summary, month, finalDate));
-  const withWeekly = upsertManagedBlock(withDaily, MONTHLY_WEEKLY_START, MONTHLY_WEEKLY_END, buildMonthlyWeeklyUsageBlock(summary, month, finalDate));
-  writeText(monthFile, `${withWeekly.replace(/\s*$/, '')}\n`);
+  const withoutWeekly = removeManagedBlock(current, MONTHLY_WEEKLY_START, MONTHLY_WEEKLY_END);
+  const withDaily = upsertManagedBlock(withoutWeekly, MONTHLY_DAILY_START, MONTHLY_DAILY_END, buildMonthlyDailyUsageBlock(summary, month, finalDate));
+  writeText(monthFile, `${withDaily.replace(/\s*$/, '')}\n`);
   return { ok: true, path: monthFile, month };
 }
 
@@ -258,8 +244,6 @@ function todayUsage(summary, today) {
 module.exports = {
   MONTHLY_DAILY_END,
   MONTHLY_DAILY_START,
-  MONTHLY_WEEKLY_END,
-  MONTHLY_WEEKLY_START,
   USAGE_HEADER,
   buildUsageSection,
   monthlyRows,

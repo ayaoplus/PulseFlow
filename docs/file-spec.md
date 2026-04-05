@@ -48,10 +48,9 @@ Append daily snapshots in this format:
 Inside each `todo/history/YYYY-MM.md`, maintain two managed archive blocks:
 
 - `## AI Usage Daily Summary`
-- `## AI Usage Weekly Summary`
 
-Daily summary stores finalized per-day usage rows for that month.
-Weekly summary stores completed week tables whose week end falls in that month.
+This block stores finalized per-day usage rows for that month.
+Do not maintain a second weekly usage block in the month file; it is redundant with the daily rows.
 
 ## Config
 
@@ -101,7 +100,7 @@ Reads config, queries weekly OpenClaw usage, scans today's AI logs, rebuilds `AI
 
 ### `scripts/rollover_now.js`
 
-Archives yesterday's completed work, updates monthly daily usage summary, updates monthly weekly usage summary on week boundary, resets done state, carries unfinished work forward, and updates `rollover-state.json`.
+Archives yesterday's completed work, updates the month file's daily usage summary, resets done state, carries unfinished work forward, and updates `rollover-state.json`.
 
 ### `scripts/validate_system.js`
 
