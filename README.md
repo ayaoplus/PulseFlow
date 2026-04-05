@@ -171,9 +171,10 @@ pulseflow/
 PulseFlow can optionally install two template-driven summary cron jobs:
 
 - **15:30 midday summary** — summarize progress so far, judge the day, and suggest the second-half priorities
-- **00:05 daily close** — read the previous day's report when available, then generate a wrap-up with carry-forward tasks and token context
+- **00:10 daily close** — read the previous day's report when available, then generate a wrap-up with carry-forward tasks and token context
 
 These jobs are **not** installed by default during `init_system.js` because delivery targets are deployment-specific.
+They also do **not** replace the normal PulseFlow rollover schedule; the daily close summary should run after rollover, not instead of it.
 
 Configure `notifications.summaryCrons` in `todo/system/config.json`, then run:
 
@@ -297,9 +298,10 @@ PulseFlow 故意把这两件事分开：
 PulseFlow 可以额外挂两条“模板 + LLM”的总结类 cron：
 
 - **15:30 日间总结** — 汇总当天截至当前的推进，做判断，并给出后半天建议
-- **00:05 前一日总结** — 优先读取前一日日报归档，再产出复盘式日结
+- **00:10 前一日总结** — 优先读取前一日日报归档，再产出复盘式日结
 
 这两条 cron **不会** 在 `init_system.js` 中默认自动创建，因为通知目标、账号、时区、归档目录都属于部署侧决策。
+而且它们**不能替代** PulseFlow 正常的日切；前一日总结应在日切之后执行，而不是顶掉日切。
 
 配置方式：在 `todo/system/config.json` 的 `notifications.summaryCrons` 中填好设置，然后执行：
 

@@ -18,8 +18,8 @@ const DEFAULTS = {
   },
   dailyClose: {
     name: 'PulseFlow Daily Close',
-    description: '00:05 previous-day wrap-up and next-day handoff',
-    cron: '5 0 * * *',
+    description: '00:10 previous-day wrap-up and next-day handoff (after rollover)',
+    cron: '10 0 * * *',
     thinking: 'medium',
   },
 };

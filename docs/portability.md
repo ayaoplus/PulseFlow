@@ -36,9 +36,10 @@ For reusable installations, prefer `AI_WORKLOG_CONFIG` so the runtime does not d
 PulseFlow can optionally install two template-driven summary cron jobs:
 
 - a 15:30 midday summary
-- a 00:05 previous-day wrap-up
+- a 00:10 previous-day wrap-up (after rollover)
 
 These jobs are intentionally **not** created by `init_system.js`.
+They supplement the normal PulseFlow rollover schedule and should not replace it.
 They depend on deployment-specific choices:
 
 - delivery channel and target

@@ -135,7 +135,7 @@ At end of day or next-day rollover:
 
 - `scripts/append_ai_log.js` — appends one JSONL AI work record to today's per-agent log
 - `scripts/install_agent_log_rules.js` — installs or updates managed AI log rule blocks in configured `AGENTS.md` files
-- `scripts/install_summary_crons.js` — optionally installs or updates template-driven summary cron jobs from `notifications.summaryCrons` in config
+- `scripts/install_summary_crons.js` — optionally installs or updates template-driven summary cron jobs from `notifications.summaryCrons` in config; these summary jobs supplement rollover and do not replace it
 - `scripts/init_system.js` — creates missing dashboard, history, config, state files, today's empty AI logs, and installs managed agent log rules when configured; it does not install cron jobs by default
 - `scripts/repair_system.js` — repairs missing runtime files without overwriting healthy ones
 - `scripts/rollover_now.js` — daily rollover script; archives yesterday's human done + AI snapshot, updates monthly usage summaries, clears `DONE`, resets `AI DONE TODAY`, carries unfinished tasks forward, and updates `rollover-state.json`
@@ -204,7 +204,7 @@ Read these files as needed:
 - `references/agent-log-format.md` — log schema and examples
 - `references/heartbeat-checklist.md` — heartbeat operating checklist
 - `references/midday-summary-template.md` — optional 15:30 summary structure
-- `references/daily-close-template.md` — optional 00:05 previous-day wrap-up structure
+- `references/daily-close-template.md` — optional 00:10 previous-day wrap-up structure, intended to run after rollover
 - `docs/portability.md` — env overrides, installation assumptions, and optional cron-install notes
 
 ## Output standard
