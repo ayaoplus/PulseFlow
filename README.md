@@ -162,17 +162,6 @@ pulseflow/
 - `rollover_now.js` — daily rollover and monthly archive update
 - `validate_system.js` — end-to-end validation in a temporary environment
 
-### Release standard
-
-PulseFlow is considered release-ready when:
-
-- init works on a clean install
-- repair restores missing files safely
-- sync rebuilds live sections deterministically
-- rollover is idempotent
-- malformed log lines do not break sync
-- docs match the current runtime behavior
-
 ---
 
 ## 中文
@@ -278,13 +267,3 @@ PulseFlow 故意把这两件事分开：
 
 这样总量更直观，但缓存情况也不会被藏掉。
 
-### 什么时候算发布级？
-
-当满足这些条件时，PulseFlow 就算达到可发布标准：
-
-- init 能在空环境起系统
-- repair 能安全修复缺失文件
-- sync 能稳定重建实时视图
-- rollover 具备幂等性
-- 坏日志不会拖垮全局
-- 文档与代码保持一致
