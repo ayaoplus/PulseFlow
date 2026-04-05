@@ -150,9 +150,9 @@ function buildDefaultConfig(paths, timeZone = DEFAULT_TIME_ZONE) {
         },
         dailyClose: {
           enabled: true,
-          name: 'PulseFlow Daily Close',
-          description: '00:10 previous-day wrap-up and next-day handoff (after rollover)',
-          cron: '10 0 * * *',
+          name: 'PulseFlow Previous-Day Report',
+          description: '00:05 previous-day report before rollover',
+          cron: '5 0 * * *',
           thinking: 'medium',
         },
       },

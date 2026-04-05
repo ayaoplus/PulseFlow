@@ -246,6 +246,7 @@ module.exports = {
   MONTHLY_DAILY_START,
   USAGE_HEADER,
   buildUsageSection,
+  buildUsageTable,
   monthlyRows,
   replaceUsageSection,
   summarizeDay,

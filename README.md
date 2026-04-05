@@ -12,7 +12,7 @@
 
 **PulseFlow is a lightweight daily work system that brings human tasks and AI work into one operational rhythm.**
 
-It uses one current dashboard (`NOW.md`) for active work, append-only AI logs for execution records, weekly usage summaries for cost visibility, and monthly archives for durable history.
+It uses one current dashboard (`NOW.md`) for active work, append-only AI logs for execution records, weekly usage visibility for cost awareness, and monthly archives grouped by week for durable history.
 
 PulseFlow is not just a task list and not just an AI log viewer.
 It is a small operating layer for day-to-day work:
@@ -48,7 +48,7 @@ PulseFlow has four layers:
 
 4. **Monthly history**
    - `todo/history/YYYY-MM.md`
-   - stores completed human work, AI daily snapshots, and one monthly daily usage summary
+   - stores week-grouped daily history entries plus one weekly usage summary table per visible week block
 
 ### Dashboard structure
 
@@ -90,13 +90,13 @@ Example:
 - rebuilds `AI DONE TODAY`
 - updates `sync-state.json`
 
-#### 3. Daily rollover runs at 00:05
+#### 3. Previous-day report runs at 00:05, rollover runs at 00:15
 `scripts/rollover_now.js`:
 
 - archives completed human work into the month file
 - archives yesterday's AI snapshot into the month file
-- updates monthly daily usage summary
-- keeps one monthly daily usage summary updated as history accumulates
+- groups day entries under clipped week sections inside the month file
+- updates that week section's `AI Usage Weekly Summary`
 - resets `DONE`
 - resets `AI DONE TODAY`
 - carries unfinished work forward
@@ -171,10 +171,10 @@ pulseflow/
 PulseFlow can optionally install two template-driven summary cron jobs:
 
 - **15:30 midday summary** — summarize progress so far, judge the day, and suggest the second-half priorities
-- **00:10 daily close** — read the previous day's report when available, then generate a wrap-up with carry-forward tasks and token context
+- **00:05 previous-day report** — generate the previous day's report before rollover, using `NOW.md` as the still-live end-of-day snapshot
 
 These jobs are **not** installed by default during `init_system.js` because delivery targets are deployment-specific.
-They also do **not** replace the normal PulseFlow rollover schedule; the daily close summary should run after rollover, not instead of it.
+They also do **not** replace the normal PulseFlow rollover schedule; if you install the previous-day report cron, the actual rollover should still run later (recommended: 00:15).
 
 Configure `notifications.summaryCrons` in `todo/system/config.json`, then run:
 
@@ -205,7 +205,7 @@ AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scr
 - 人在一个面板里管理优先级
 - Agent 完成工作后追加结构化日志
 - heartbeat 负责重建实时面板
-- 每天 00:05 自动归档并切到新的一天
+- 每天 00:05 可先生成前一日日报，00:15 再完成日切
 - 当前只看 `NOW.md`，历史只看月文件
 
 ### 它解决什么问题？
@@ -233,7 +233,7 @@ PulseFlow 可以拆成四层：
 
 4. **月度历史**
    - `todo/history/YYYY-MM.md`
-   - 存放人类已完成事项、AI 当日快照、以及月度每日用量汇总
+   - 按周分组存放日条目，并在每个周块下维护 `AI Usage Weekly Summary`
 
 ### 面板结构
 
@@ -267,13 +267,13 @@ PulseFlow 可以拆成四层：
 - 重建 `AI DONE TODAY`
 - 更新 `sync-state.json`
 
-#### 3）每天 00:05 日切
+#### 3）每天 00:05 前一日日报，00:15 日切
 `scripts/rollover_now.js` 会：
 
 - 把昨天的人类完成项归档进月文件
 - 把昨天的 AI 快照归档进月文件
-- 更新月文件里的每日用量汇总
-- 维护月文件里的每日用量汇总
+- 把日条目挂到当月对应的周块下面
+- 更新该周块的 `AI Usage Weekly Summary`
 - 清空 `DONE`
 - 重置 `AI DONE TODAY`
 - 把未完成事项带到新一天
@@ -298,10 +298,10 @@ PulseFlow 故意把这两件事分开：
 PulseFlow 可以额外挂两条“模板 + LLM”的总结类 cron：
 
 - **15:30 日间总结** — 汇总当天截至当前的推进，做判断，并给出后半天建议
-- **00:10 前一日总结** — 优先读取前一日日报归档，再产出复盘式日结
+- **00:05 前一日日报** — 在日切前读取仍然保留昨日收盘快照的 `NOW.md`，生成前一日日报
 
 这两条 cron **不会** 在 `init_system.js` 中默认自动创建，因为通知目标、账号、时区、归档目录都属于部署侧决策。
-而且它们**不能替代** PulseFlow 正常的日切；前一日总结应在日切之后执行，而不是顶掉日切。
+而且它们**不能替代** PulseFlow 正常的日切；如果启用前一日日报 cron，真正的日切仍应在之后执行（推荐 00:15）。
 
 配置方式：在 `todo/system/config.json` 的 `notifications.summaryCrons` 中填好设置，然后执行：
 

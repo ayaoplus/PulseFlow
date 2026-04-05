@@ -55,6 +55,16 @@ function weekStart(date) {
   return shiftDate(date, -offset);
 }
 
+function weekDates(date) {
+  return Array.from({ length: 7 }, (_, index) => shiftDate(weekStart(date), index));
+}
+
+function clippedWeekLabel(date) {
+  const monthPrefix = `${date.slice(0, 7)}-`;
+  const dates = weekDates(date).filter((item) => item.startsWith(monthPrefix));
+  return `## Week ${dates[0]} → ${dates[dates.length - 1]}`;
+}
+
 function main() {
   const tempRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'PulseFlow-'));
   const env = {
@@ -224,11 +234,15 @@ function main() {
   const historyMonthPath = path.join(historyDir, `${rolloverFirst.archivedDate.slice(0, 7)}.md`);
   const historyText = read(historyMonthPath);
   assert(!historyText.includes('## YYYY-MM-DD'), 'history should not contain template placeholder sections');
+  assert(historyText.includes(clippedWeekLabel(rolloverFirst.archivedDate)), 'history missing clipped week section');
+  assert(historyText.includes('### AI Usage Weekly Summary'), 'history missing weekly usage summary block');
+  assert(historyText.includes(`### ${rolloverFirst.archivedDate}`), 'history missing archived day section');
+  assert(historyText.includes('#### Human Done'), 'history missing Human Done subsection');
+  assert(historyText.includes('#### AI Done Today'), 'history missing AI Done Today subsection');
   assert(historyText.includes('- [x] 原 DONE 事项'), 'history missing archived DONE item');
   assert(historyText.includes('- [x] 已完成焦点任务'), 'history missing archived FOCUS item');
   assert(historyText.includes('- main: 完成 JS 同步脚本'), 'history missing AI snapshot');
-  assert(historyText.includes('## AI Usage Daily Summary'), 'history missing monthly daily usage summary block');
-  assert(!historyText.includes('## AI Usage Weekly Summary'), 'history should not contain a redundant monthly weekly usage summary block');
+  assert(!historyText.includes('## AI Usage Daily Summary'), 'history should no longer contain the old monthly daily usage summary block');
 
   const rolloverSecond = runScript('rollover_now.js', { ...envWithUsage, AI_WORKLOG_CONFIG: configPath });
   assert(rolloverSecond.skipped === true, 'rollover_now.js should skip repeated rollover on same day');

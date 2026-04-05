@@ -17,9 +17,9 @@ const DEFAULTS = {
     thinking: 'medium',
   },
   dailyClose: {
-    name: 'PulseFlow Daily Close',
-    description: '00:10 previous-day wrap-up and next-day handoff (after rollover)',
-    cron: '10 0 * * *',
+    name: 'PulseFlow Previous-Day Report',
+    description: '00:05 previous-day report before rollover',
+    cron: '5 0 * * *',
     thinking: 'medium',
   },
 };
@@ -158,16 +158,21 @@ function buildMiddayMessage({ paths, config, summary, archives }) {
 
 function buildDailyCloseMessage({ paths, config, summary, archives }) {
   const dashboardPath = config.dashboardPath || paths.nowPath;
+  const statusHints = buildOptionalStatusHints(config);
   const logHints = buildLogHints(config, 'YYYY-MM-DD');
   return [
     'First call session_status to confirm the current date and local time, then determine yesterday\'s date.',
+    'Treat the current NOW.md as yesterday\'s end-of-day snapshot because this job is meant to run before rollover.',
     `Read the template at ${path.join(paths.templateDir, 'daily-close-template.md')}.`,
-    `First try yesterday\'s archived daily report at ${path.join(archives.dailyReports, 'YYYY-MM-DD.md')}.`,
-    `If that archive is missing, fall back to PulseFlow history under ${config.historyDir || paths.historyDir}, the current dashboard at ${dashboardPath}, yesterday\'s enabled-agent AI logs using these path patterns:\n${logHints || '- (none configured)'}, and yesterday\'s usage data (for example via openclaw gateway usage-cost --days 2 --json).`,
-    'Generate one previous-day wrap-up using the template structure, but write naturally and with judgment.',
-    `Write the final markdown body to ${path.join(archives.dailyClose, 'YYYY-MM-DD.md')} using the date being summarized.`,
+    `Read the current PulseFlow dashboard at ${dashboardPath}.`,
+    `Read yesterday\'s enabled-agent AI logs using these path patterns:\n${logHints || '- (none configured)'}`,
+    statusHints ? `If these optional same-day status files exist, use them only as supplementary context for AI completions and remarks, never for task lists:\n${statusHints}` : 'Optional agent status files may be used only as supplementary context for AI completions and remarks.',
+    'Read yesterday\'s usage data when needed (for example via openclaw gateway usage-cost --days 2 --json).',
+    'Keep task sourcing strict: pending and long-term task lists must come from NOW.md only. Do not pull blockers, pending items, or next steps out of status files and write them back as task-list items.',
+    'Generate one previous-day report using the template structure, but write naturally and with judgment.',
+    `Write the final markdown body to ${path.join(archives.dailyReports, 'YYYY-MM-DD.md')} using the date being summarized.`,
     'Do not use the message tool. Cron delivery will announce your final response.',
-    'Return only the final user-facing summary body as your final answer.',
+    'Return only the final user-facing report body as your final answer.',
   ].join(' ');
 }
 

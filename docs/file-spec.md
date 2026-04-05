@@ -33,24 +33,29 @@ AI section format:
 
 ### `todo/history/YYYY-MM.md`
 
-Append daily snapshots in this format:
+Store daily snapshots under clipped week sections in this format:
 
 ```md
-## YYYY-MM-DD
+## Week 2026-04-01 → 2026-04-05
 
-### Human Done
+### AI Usage Weekly Summary
+| Date | Total Tokens | Input | Output | Cache | Hit Rate |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| ... |
+
+### 2026-04-05
+
+#### Human Done
 - [x] ...
 
-### AI Done Today
+#### AI Done Today
 - main: ...
 ```
 
-Inside each `todo/history/YYYY-MM.md`, maintain two managed archive blocks:
-
-- `## AI Usage Daily Summary`
-
-This block stores finalized per-day usage rows for that month.
-Do not maintain a second weekly usage block in the month file; it is redundant with the daily rows.
+Rules:
+- natural days always stay inside their natural month file
+- week sections are only a readability grouping layer
+- cross-month weeks are clipped inside each month file instead of being forced into a full 7-day block
 
 ## Config
 
@@ -100,7 +105,7 @@ Reads config, queries weekly OpenClaw usage, scans today's AI logs, rebuilds `AI
 
 ### `scripts/rollover_now.js`
 
-Archives yesterday's completed work, updates the month file's daily usage summary, resets done state, carries unfinished work forward, and updates `rollover-state.json`.
+Archives yesterday's completed work into a week-grouped month file, updates that week's `AI Usage Weekly Summary`, resets done state, carries unfinished work forward, and updates `rollover-state.json`.
 
 ### `scripts/validate_system.js`
 

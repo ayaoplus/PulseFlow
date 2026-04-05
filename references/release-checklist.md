@@ -19,8 +19,8 @@
 - [ ] Explicit `[x]` items in active sections move into archive
 - [ ] Existing `DONE` is archived
 - [ ] AI snapshot is archived
-- [ ] Monthly daily usage summary is updated
-- [ ] Monthly daily usage summary is updated after rollover
+- [ ] History is grouped by clipped week sections
+- [ ] The target week's `AI Usage Weekly Summary` is updated
 - [ ] `FOCUS` and `TODAY` unfinished items move into new `TODAY`
 - [ ] `UP NEXT` stays unchanged
 - [ ] `FOCUS` resets

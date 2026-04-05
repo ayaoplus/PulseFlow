@@ -14,9 +14,10 @@ const {
 } = require('./_common');
 const {
   buildUsageSection,
-  updateMonthlyUsageArchive,
+  buildUsageTable,
   usageSummary,
   weeklyRows,
+  weekDates,
 } = require('./_usage_panel');
 
 const SECTIONS = ['AI USAGE THIS WEEK', 'FOCUS', 'TODAY', 'UP NEXT', 'DONE', 'AI DONE TODAY'];
@@ -73,7 +74,7 @@ function aiSnapshot(lines) {
   return (lines || []).filter((line) => line.trim());
 }
 
-function ensureMonthHistoryFile(historyDir, month, date, paths) {
+function ensureMonthHistoryFile(historyDir, month, paths) {
   const monthFile = path.join(historyDir, `${month}.md`);
   if (!exists(monthFile)) {
     writeText(monthFile, historyMonthShell(paths, month));
@@ -127,36 +128,129 @@ function buildNow(preamble, usageSection, todayPending, upNextPending) {
   return out.join('\n');
 }
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+function weekTitleForDate(date) {
+  const monthPrefix = `${date.slice(0, 7)}-`;
+  const dates = weekDates(date).filter((item) => item.startsWith(monthPrefix));
+  return `## Week ${dates[0]} → ${dates[dates.length - 1]}`;
 }
 
-function buildHistoryEntry(archivedDate, humanDone, aiLines) {
+function extractWeekStart(header) {
+  const matched = header.match(/^## Week (\d{4}-\d{2}-\d{2}) →/);
+  return matched ? matched[1] : '9999-99-99';
+}
+
+function buildDayEntry(archivedDate, humanDone, aiLines) {
   const lines = [];
-  lines.push(`## ${archivedDate}`, '');
-  lines.push('### Human Done');
+  lines.push(`### ${archivedDate}`, '');
+  lines.push('#### Human Done');
   if (humanDone.length) {
     lines.push(...humanDone);
   } else {
     lines.push('- [x] 暂无');
   }
-  lines.push('', '### AI Done Today');
+  lines.push('', '#### AI Done Today');
   if (aiLines.length) {
     lines.push(...aiLines);
   } else {
     lines.push('- 暂无');
   }
-  lines.push('');
-  return lines.join('\n');
+  return lines.join('\n').replace(/\s*$/, '');
 }
 
-function upsertHistory(monthFile, archivedDate, humanDone, aiLines) {
-  const entry = buildHistoryEntry(archivedDate, humanDone, aiLines).replace(/\s*$/, '');
-  const current = exists(monthFile) ? readText(monthFile).replace(/\s*$/, '') : '';
-  const sectionPattern = new RegExp(`(^|\\n)## ${escapeRegExp(archivedDate)}\\n[\\s\\S]*?(?=\\n## \\d{4}-\\d{2}-\\d{2}\\n|$)`, 'gm');
-  const cleaned = current.replace(sectionPattern, '').replace(/\n{3,}/g, '\n\n').replace(/\s*$/, '');
-  const next = cleaned ? `${cleaned}\n\n${entry}` : entry;
-  writeText(monthFile, `${next.replace(/\s*$/, '')}\n`);
+function parseWeekSections(text, month) {
+  const lines = text.split(/\r?\n/);
+  const headerLine = lines.find((line) => /^# History - /.test(line)) || `# History - ${month}`;
+  const sections = [];
+  let currentHeader = null;
+  let buffer = [];
+
+  for (const line of lines) {
+    if (/^## Week /.test(line)) {
+      if (currentHeader) {
+        sections.push({ header: currentHeader, lines: [...buffer] });
+      }
+      currentHeader = line;
+      buffer = [];
+      continue;
+    }
+
+    if (currentHeader) {
+      buffer.push(line);
+    }
+  }
+
+  if (currentHeader) {
+    sections.push({ header: currentHeader, lines: [...buffer] });
+  }
+
+  return { preamble: [headerLine], sections };
+}
+
+function parseDayEntries(lines) {
+  const entries = new Map();
+  let currentDate = null;
+  let buffer = [];
+
+  for (const line of lines || []) {
+    const matched = line.match(/^### (\d{4}-\d{2}-\d{2})$/);
+    if (matched) {
+      if (currentDate) {
+        entries.set(currentDate, buffer.join('\n').replace(/\s*$/, ''));
+      }
+      currentDate = matched[1];
+      buffer = [line];
+      continue;
+    }
+
+    if (currentDate) {
+      buffer.push(line);
+    }
+  }
+
+  if (currentDate) {
+    entries.set(currentDate, buffer.join('\n').replace(/\s*$/, ''));
+  }
+
+  return entries;
+}
+
+function weekRowsForDate(summary, archivedDate) {
+  const monthPrefix = `${archivedDate.slice(0, 7)}-`;
+  return weeklyRows(summary, archivedDate).filter((row) => row.date.startsWith(monthPrefix) && row.date <= archivedDate);
+}
+
+function buildWeekBody(summary, archivedDate, dayEntries) {
+  const rows = weekRowsForDate(summary, archivedDate);
+  const out = [
+    '### AI Usage Weekly Summary',
+    buildUsageTable(rows, 'Week Total'),
+  ];
+
+  const orderedDates = Array.from(dayEntries.keys()).sort();
+  for (const date of orderedDates) {
+    out.push('', dayEntries.get(date).trimEnd());
+  }
+
+  return out.join('\n').replace(/\s*$/, '');
+}
+
+function upsertHistory(monthFile, archivedDate, humanDone, aiLines, summary, month) {
+  const current = exists(monthFile) ? readText(monthFile) : `# History - ${month}\n`;
+  const { preamble, sections } = parseWeekSections(current, month);
+  const targetHeader = weekTitleForDate(archivedDate);
+  const sectionMap = new Map(sections.map((section) => [section.header, section.lines]));
+  const dayEntries = parseDayEntries(sectionMap.get(targetHeader) || []);
+  dayEntries.set(archivedDate, buildDayEntry(archivedDate, humanDone, aiLines));
+  sectionMap.set(targetHeader, buildWeekBody(summary, archivedDate, dayEntries).split('\n'));
+
+  const orderedHeaders = Array.from(sectionMap.keys()).sort((a, b) => extractWeekStart(a).localeCompare(extractWeekStart(b)));
+  const out = [...preamble.filter(Boolean)];
+
+  for (const header of orderedHeaders) {
+    out.push('', header, '', ...sectionMap.get(header));
+  }
+
+  writeText(monthFile, `${out.join('\n').replace(/\s*$/, '')}\n`);
 }
 
 function main() {
@@ -198,9 +292,9 @@ function main() {
   ];
   const nextToday = [...focus.pending, ...todaySection.pending];
 
-  const monthFile = ensureMonthHistoryFile(historyDir, yesterday.slice(0, 7), yesterday, paths);
-  upsertHistory(monthFile, yesterday, humanDone, aiLines);
-  updateMonthlyUsageArchive(monthFile, usage, yesterday.slice(0, 7), yesterday);
+  const month = yesterday.slice(0, 7);
+  const monthFile = ensureMonthHistoryFile(historyDir, month, paths);
+  upsertHistory(monthFile, yesterday, humanDone, aiLines, usage, month);
 
   writeText(dashboardPath, buildNow(preamble, buildUsageSection(weeklyRows(usage, today)), nextToday, upNext.pending));
 

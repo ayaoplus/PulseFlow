@@ -46,16 +46,20 @@ The script:
 - rebuilds `AI DONE TODAY`
 - updates `sync-state.json`
 
-## 3. Day rollover
+## 3. Nightly flow
 
-At 00:05 a cron runs `rollover_now.js`.
-The script:
+Recommended order:
+
+1. 00:05 generate the previous-day report while `NOW.md` still reflects yesterday's end-of-day snapshot
+2. 00:15 run `rollover_now.js`
+
+The rollover script:
 
 - collects explicit completed items from active sections
 - archives human done items into the month file
 - archives the full `AI DONE TODAY` snapshot into the month file
-- updates the month file's `AI Usage Daily Summary`
-- updates the month file's single `AI Usage Daily Summary` block
+- places each archived day under the clipped week section for that month
+- updates that week section's `AI Usage Weekly Summary`
 - clears `DONE`
 - resets `AI DONE TODAY`
 - rebuilds weekly usage for the new current week

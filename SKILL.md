@@ -123,7 +123,7 @@ At end of day or next-day rollover:
 
 1. Append completed human tasks and the AI section snapshot into `todo/history/YYYY-MM.md`
 2. Update the month file's `AI Usage Daily Summary` block with finalized per-day usage rows
-3. Keep one monthly `AI Usage Daily Summary` block in the month file; do not maintain a second weekly usage block there
+3. Group archived day entries by clipped week sections inside the month file, and keep one `AI Usage Weekly Summary` table per visible week block
 4. Reset `DONE` in `todo/NOW.md`
 5. Reset `AI DONE TODAY` for the new day on first sync
 6. Rebuild `AI USAGE THIS WEEK` for the new current week
@@ -135,10 +135,10 @@ At end of day or next-day rollover:
 
 - `scripts/append_ai_log.js` — appends one JSONL AI work record to today's per-agent log
 - `scripts/install_agent_log_rules.js` — installs or updates managed AI log rule blocks in configured `AGENTS.md` files
-- `scripts/install_summary_crons.js` — optionally installs or updates template-driven summary cron jobs from `notifications.summaryCrons` in config; these summary jobs supplement rollover and do not replace it
+- `scripts/install_summary_crons.js` — optionally installs or updates template-driven notification cron jobs from `notifications.summaryCrons` in config; these jobs supplement rollover and do not replace it
 - `scripts/init_system.js` — creates missing dashboard, history, config, state files, today's empty AI logs, and installs managed agent log rules when configured; it does not install cron jobs by default
 - `scripts/repair_system.js` — repairs missing runtime files without overwriting healthy ones
-- `scripts/rollover_now.js` — daily rollover script; archives yesterday's human done + AI snapshot, updates monthly usage summaries, clears `DONE`, resets `AI DONE TODAY`, carries unfinished tasks forward, and updates `rollover-state.json`
+- `scripts/rollover_now.js` — daily rollover script; archives yesterday's human done + AI snapshot into a week-grouped month file, updates that week's `AI Usage Weekly Summary`, clears `DONE`, resets `AI DONE TODAY`, carries unfinished tasks forward, and updates `rollover-state.json`
 - `scripts/sync_ai_done.js` — deterministic sync script for heartbeat or manual refresh; reads config, queries weekly usage, scans today's agent JSONL logs, rebuilds `AI USAGE THIS WEEK` plus `AI DONE TODAY`, and updates sync state
 - `scripts/validate_system.js` — runs a local end-to-end validation covering init, sync, repair, rollover, and rollover idempotency
 
@@ -149,7 +149,7 @@ node <skill-dir>/scripts/rollover_now.js
 ```
 
 Recommended scheduler:
-- daily cron at `00:05` Asia/Shanghai
+- daily cron at `00:15` Asia/Shanghai
 
 Run with:
 
@@ -204,7 +204,7 @@ Read these files as needed:
 - `references/agent-log-format.md` — log schema and examples
 - `references/heartbeat-checklist.md` — heartbeat operating checklist
 - `references/midday-summary-template.md` — optional 15:30 summary structure
-- `references/daily-close-template.md` — optional 00:10 previous-day wrap-up structure, intended to run after rollover
+- `references/daily-close-template.md` — optional 00:05 previous-day report structure, intended to run before rollover
 - `docs/portability.md` — env overrides, installation assumptions, and optional cron-install notes
 
 ## Output standard
