@@ -169,6 +169,7 @@ function buildDailyCloseMessage({ paths, config, summary, archives }) {
     `Read yesterday\'s enabled-agent AI logs using these path patterns:\n${logHints || '- (none configured)'}`,
     statusHints ? `If these optional same-day status files exist, use them only as supplementary context for AI completions and remarks, never for task lists:\n${statusHints}` : 'Optional agent status files may be used only as supplementary context for AI completions and remarks.',
     'Read yesterday\'s usage data when needed (for example via openclaw gateway usage-cost --days 2 --json).',
+    'When reading NOW.md, treat every explicit `- [x]` item under FOCUS, TODAY, UP NEXT, or DONE as completed work for the summarized day. Do not assume only DONE counts as done. If a checked item still sits in an active section, count it as completed and optionally call out the board-hygiene issue.',
     'Keep task sourcing strict: pending and long-term task lists must come from NOW.md only. Do not pull blockers, pending items, or next steps out of status files and write them back as task-list items.',
     'Generate one previous-day report using the template structure, but write naturally and with judgment.',
     `Write the final markdown body to ${path.join(archives.dailyReports, 'YYYY-MM-DD.md')} using the date being summarized.`,
