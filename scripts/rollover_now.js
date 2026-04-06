@@ -20,7 +20,7 @@ const {
   weekDates,
 } = require('./_usage_panel');
 
-const SECTIONS = ['AI USAGE THIS WEEK', 'FOCUS', 'TODAY', 'UP NEXT', 'DONE', 'AI DONE TODAY'];
+const SECTIONS = ['AI USAGE THIS WEEK', 'FOCUS', 'TODAY', 'UP NEXT', 'ITERATION NOTES', 'DONE', 'AI DONE TODAY'];
 
 function splitSections(text) {
   const lines = text.split(/\r?\n/);
@@ -87,7 +87,16 @@ function ensureMonthHistoryFile(historyDir, month, paths) {
   return monthFile;
 }
 
-function buildNow(preamble, usageSection, todayPending, upNextPending) {
+function normalizePreservedLines(lines, fallback = '- 暂无') {
+  const cleaned = [...(lines || [])];
+
+  while (cleaned.length && !cleaned[0].trim()) cleaned.shift();
+  while (cleaned.length && !cleaned[cleaned.length - 1].trim()) cleaned.pop();
+
+  return cleaned.length ? cleaned : [fallback];
+}
+
+function buildNow(preamble, usageSection, todayPending, upNextPending, iterationNotes) {
   const pre = (preamble || []).join('\n').replace(/\s*$/, '');
   const out = [];
 
@@ -123,6 +132,13 @@ function buildNow(preamble, usageSection, todayPending, upNextPending) {
     '## DONE',
     '',
     '- [x]',
+    '',
+    '---',
+    '## ITERATION NOTES',
+  );
+  out.push(...normalizePreservedLines(iterationNotes));
+
+  out.push(
     '',
     '---',
     '## AI DONE TODAY',
@@ -286,6 +302,7 @@ function main() {
   const focus = classifyItems(sections.FOCUS || []);
   const todaySection = classifyItems(sections.TODAY || []);
   const upNext = classifyItems(sections['UP NEXT'] || []);
+  const iterationNotes = sections['ITERATION NOTES'] || [];
   const doneSection = classifyItems(sections.DONE || []);
   const aiLines = aiSnapshot(sections['AI DONE TODAY'] || []);
 
@@ -301,7 +318,7 @@ function main() {
   const monthFile = ensureMonthHistoryFile(historyDir, month, paths);
   upsertHistory(monthFile, yesterday, humanDone, aiLines, usage, month);
 
-  writeText(dashboardPath, buildNow(preamble, buildUsageSection(weeklyRows(usage, today)), nextToday, upNext.pending));
+  writeText(dashboardPath, buildNow(preamble, buildUsageSection(weeklyRows(usage, today)), nextToday, upNext.pending, iterationNotes));
 
   const nextState = {
     ...rolloverState,

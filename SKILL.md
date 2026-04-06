@@ -12,7 +12,8 @@ Build and operate a simple task system with one human-facing dashboard file and 
 Use one current dashboard file as the source of truth for active work.
 
 - Weekly usage lives in one top summary panel only: `AI USAGE THIS WEEK`
-- Human work lives in four sections only: `FOCUS`, `TODAY`, `UP NEXT`, `DONE`
+- Human work lives in four task sections: `FOCUS`, `TODAY`, `UP NEXT`, `DONE`
+- Persistent human notes live in one non-task section: `ITERATION NOTES`
 - AI work lives in one summary section only: `AI DONE TODAY`
 - Agents do **not** write the dashboard directly
 - Agents do not hand-maintain the dashboard
@@ -117,6 +118,10 @@ Human task sections:
 - `## UP NEXT`
 - `## DONE`
 
+Persistent notes section:
+
+- `## ITERATION NOTES` — persistent future-direction notes, constraints, or ideas; do not treat as tasks
+
 AI section:
 
 - `## AI DONE TODAY`
@@ -135,7 +140,8 @@ At end of day or next-day rollover:
 6. Rebuild `AI USAGE THIS WEEK` for the new current week
 7. Move unfinished `FOCUS` and unfinished `TODAY` into the new day's `TODAY`
 8. Keep unfinished `UP NEXT` unchanged
-9. Reset `FOCUS` to an empty placeholder
+9. Keep `ITERATION NOTES` unchanged across rollover
+10. Reset `FOCUS` to an empty placeholder
 
 ## Scripts
 
