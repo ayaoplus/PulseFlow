@@ -7,6 +7,7 @@ Provide a reusable daily work system for OpenClaw-based operations where:
 - human work remains readable in one Markdown dashboard
 - AI work is captured as append-only logs
 - live AI sections are always derived, never hand-maintained
+- logging rules are installed into agents automatically instead of hand-maintained one by one
 - daily rollover archives history and prepares the next day automatically
 - usage visibility stays in the live dashboard while finalized usage history stays monthly
 
@@ -19,6 +20,8 @@ Provide a reusable daily work system for OpenClaw-based operations where:
 5. Deterministic rollover at day boundary
 6. Recoverable state through simple files
 7. Keep current state lightweight and history monthly
+8. Prefer install-time rule injection over per-agent bespoke workflow hooks
+9. Keep logging judgement in the agent turn itself instead of adding observer scans or periodic LLM audits
 
 ## Components
 
@@ -30,7 +33,7 @@ Holds current human task state, the current week's usage table, and today's AI s
 ### AI source logs
 `reports/<agent>-ai-log-YYYY-MM-DD.jsonl`
 
-Hold one JSON object per completed work unit.
+Hold one JSON object per independent closed work unit.
 
 ### History
 `todo/history/YYYY-MM.md`
@@ -45,8 +48,10 @@ Stores archived daily human completion snapshots, AI daily summaries, daily usag
 ### Bootstrap and repair scripts
 - `scripts/init_system.js`
 - `scripts/repair_system.js`
+- `scripts/install_agent_log_rules.js`
 
 These scripts make the system recoverable when files are missing or the installation is only partially initialized.
+`init_system.js` also performs install-time AI logging rule injection for configured agents.
 
 ### Validation script
 - `scripts/validate_system.js`
@@ -57,6 +62,39 @@ This script exercises the JavaScript runtime end-to-end in a temporary installat
 
 Append-only logs are resilient, easy to inspect, and safer than shared-write dashboards.
 They also allow rebuilding the visible AI section after crashes or missed syncs.
+
+## Why managed AGENTS injection is the primary integration model
+
+PulseFlow should not require bespoke logging hooks for every agent skill or workflow.
+That would turn every new agent into a custom integration project.
+
+Instead, PulseFlow installs one managed rule block into each configured `AGENTS.md` file.
+That block creates a reply-before-log gate:
+
+- before any user-visible reply or completion notification
+- decide whether the current turn closed one or more independent work units
+- if yes, append one JSONL record per closed work unit
+- only then send the reply or notification
+
+This keeps the integration generic:
+
+- install-time automation handles the first rollout
+- re-running the installer updates all agents consistently
+- adding a new agent later only requires adding it to config and re-running the installer
+
+## Why PulseFlow does not rely on observer scans
+
+A directory-scanning or session-replay observer can be a fallback later, but it is not the primary design.
+For a reusable skill, constant scanning introduces unnecessary complexity, higher runtime cost, and more edge cases.
+
+PulseFlow instead keeps judgement inside the active LLM turn:
+
+- cheap: no extra periodic analysis loop
+- local: the agent already knows what it just finished
+- reusable: the same managed rule can be injected into many agents
+
+The trade-off is that the LLM must follow the rule block reliably.
+PulseFlow therefore treats the installer-managed AGENTS block as part of the product surface, not a local note.
 
 ## Why the AI sections are derived
 
@@ -94,3 +132,4 @@ Minimum recovery set:
 - recreate sync state if missing
 - recreate rollover state if missing
 - preserve healthy files when repairing
+- re-run managed AGENTS rule injection when agent instructions drift or new agents are added

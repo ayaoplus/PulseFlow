@@ -151,6 +151,17 @@ function main() {
   assert(initReplay.ruleInstallResults.some((item) => item.agent === 'main' && item.status === 'updated'), 'init_system.js should install main AGENTS rule');
   assert(fs.existsSync(path.join(reportsDir, `main-ai-log-${today}.jsonl`)), 'init_system.js should create today main log file');
   assert(read(mainAgentsPath).includes('AI_WORKLOG_RULE_START'), 'main AGENTS missing managed AI log block');
+  assert(read(mainAgentsPath).includes('先记账，后回复'), 'managed AI log block should install the reply-before-log rule');
+
+  const dryRunInstall = runScriptArgs('install_agent_log_rules.js', ['--dry-run'], { ...envWithUsage, AI_WORKLOG_CONFIG: configPath });
+  assert(dryRunInstall.results.some((item) => item.agent === 'main' && item.status === 'would-keep'), 'dry-run should report main as would-keep after init');
+
+  write(cortexAgentsPath, '# Cortex AGENTS\n\n## Old note\n');
+  const targetedDryRun = runScriptArgs('install_agent_log_rules.js', ['--dry-run', '--agent', 'cortex'], { ...envWithUsage, AI_WORKLOG_CONFIG: configPath });
+  assert(targetedDryRun.results.length === 1 && targetedDryRun.results[0].agent === 'cortex', 'targeted dry-run should only inspect cortex');
+  assert(targetedDryRun.results[0].status === 'would-update', 'targeted dry-run should detect cortex update');
+  runScriptArgs('install_agent_log_rules.js', ['--agent', 'cortex'], { ...envWithUsage, AI_WORKLOG_CONFIG: configPath });
+  assert(read(cortexAgentsPath).includes('AI_WORKLOG_RULE_START'), 'targeted install should update cortex AGENTS');
 
   runScriptArgs('append_ai_log.js', [
     '--agent', 'main',

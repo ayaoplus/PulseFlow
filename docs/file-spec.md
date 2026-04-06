@@ -71,6 +71,11 @@ Defines:
 - optional `agentsFilePath` per agent for managed AGENTS rule installation
 - optional `notifications.summaryCrons` settings for template-driven summary cron jobs
 
+Each agent entry is enough for AGENTS rule injection when it provides:
+- `name`
+- `reportsDir`
+- `agentsFilePath`
+
 ## Sync state
 
 ### `todo/system/sync-state.json`
@@ -118,6 +123,10 @@ Appends one JSON line to today's per-agent AI work log.
 ### `scripts/install_agent_log_rules.js`
 
 Installs or updates a managed AI log rule block inside configured agents' `AGENTS.md` files.
+Supports:
+- full install/refresh for all configured agents
+- `--dry-run` preview mode
+- `--agent <name>` targeted refresh for one or more specific agents
 
 ## AI log files
 
@@ -137,6 +146,18 @@ Required fields:
 
 Rules:
 - append-only
-- one line per completed work unit
+- one line per independent completed work unit
 - task must remain one line
 - if `tokens` is present, it must be an integer total
+
+## Managed AGENTS rule block
+
+Installer-managed rule blocks are delimited with:
+- `<!-- AI_WORKLOG_RULE_START -->`
+- `<!-- AI_WORKLOG_RULE_END -->`
+
+Injected rule behavior:
+- run the logging judgement before any user-visible reply or completion notification
+- log only when the current turn closed an independent work unit
+- if multiple work units closed in one turn, append multiple lines
+- do not log pure discussion, exploration, reading, or failed attempts

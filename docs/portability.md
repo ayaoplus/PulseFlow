@@ -31,6 +31,30 @@ If `AI_WORKLOG_CONFIG` is not set, the runtime resolves the install root from:
 
 For reusable installations, prefer `AI_WORKLOG_CONFIG` so the runtime does not depend on the caller's working directory.
 
+## Managed AGENTS rule installation
+
+PulseFlow treats managed AGENTS injection as part of installation, not as a manual follow-up step.
+`init_system.js` creates runtime files and then installs or refreshes the AI work log rule block for every configured agent that has an `agentsFilePath`.
+
+Manual refresh remains available:
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_agent_log_rules.js
+```
+
+Preview changes first with:
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_agent_log_rules.js --dry-run
+```
+
+Refresh one or more specific agents after adding them to config:
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_agent_log_rules.js --agent main
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_agent_log_rules.js --agent main,cortex
+```
+
 ## Optional summary-cron installation
 
 PulseFlow can optionally install two template-driven notification cron jobs:

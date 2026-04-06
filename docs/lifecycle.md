@@ -28,12 +28,16 @@ The human or coordinator edits:
 - `DONE`
 
 ### AI side
-Execution agents append one JSON line per completed work unit containing:
+Execution agents use the managed reply-before-log rule block inside `AGENTS.md`.
+Before any user-visible reply or completion notification, they decide whether the current turn closed one or more independent work units.
+If yes, they append one JSON line per work unit containing:
 
 - timestamp
 - agent name
 - one-line task description
 - optional token metadata
+
+Pure discussion, exploration, reading, or failed attempts should not be logged.
 
 ### Sync
 Coordinator heartbeat runs `sync_ai_done.js`.

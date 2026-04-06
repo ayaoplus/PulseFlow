@@ -1,6 +1,6 @@
 ---
 name: pulseflow
-description: Maintain a Markdown task dashboard backed by agent-written append-only AI work logs, then sync a daily AI DONE TODAY section plus a weekly usage panel via heartbeat or on-demand refresh. Use when building or operating a reusable task system where: (1) human tasks live in a single NOW.md dashboard, (2) agents automatically append work records after each completed work unit, (3) heartbeat scans logs and refreshes the AI-derived sections, (4) a new workspace or vault needs initialization with templates, paths, and sync state.
+description: Maintain a Markdown task dashboard backed by agent-written append-only AI work logs, then sync a daily AI DONE TODAY section plus a weekly usage panel via heartbeat or on-demand refresh. Use when building or operating a reusable task system where: (1) human tasks live in a single NOW.md dashboard, (2) managed AGENTS rules make agents decide before replying whether a closed work unit should be logged, (3) heartbeat scans logs and refreshes the AI-derived sections, (4) a new workspace or vault needs initialization with templates, paths, sync state, and automatic AGENTS rule injection.
 ---
 
 # PulseFlow
@@ -15,7 +15,9 @@ Use one current dashboard file as the source of truth for active work.
 - Human work lives in four sections only: `FOCUS`, `TODAY`, `UP NEXT`, `DONE`
 - AI work lives in one summary section only: `AI DONE TODAY`
 - Agents do **not** write the dashboard directly
-- Agents append one log line after each completed work unit
+- Agents do not hand-maintain the dashboard
+- Managed AGENTS rules make each agent check before replying whether one or more independent work units just closed
+- Closed work units append one log line each
 - Heartbeat or an explicit refresh reads usage data plus logs and rewrites the AI-derived sections
 
 ## File roles
@@ -48,11 +50,12 @@ When setting up a new installation:
 8. Do not import old AI activity retroactively unless explicitly requested
 9. Create today's empty AI log files for enabled agents
 10. Install or refresh managed AI logging rules in configured `AGENTS.md` files
-11. If the installation explicitly wants scheduled summaries, fill `notifications.summaryCrons` in config and run `scripts/install_summary_crons.js`
+11. Treat that installer as part of initialization, not an optional human reminder
+12. If the installation explicitly wants scheduled summaries, fill `notifications.summaryCrons` in config and run `scripts/install_summary_crons.js`
 
 ## Agent write contract
 
-Each agent must append one JSON object per completed work unit to its own daily JSONL log.
+Each agent must append one JSON object per independent completed work unit to its own daily JSONL log.
 
 Required fields:
 
@@ -70,10 +73,13 @@ Example line:
 Rules:
 
 - Append only; never edit prior lines in-place
-- Write after each completed work unit, not only at day end
+- Run the logging judgement before any user-visible reply or completion notification
+- Write after each independent completed work unit, not only at day end
+- If multiple work units closed in one turn, append multiple lines
 - One line should be readable without extra context
 - Do not depend on per-task token totals for daily usage accounting
 - Do not write to `todo/NOW.md` directly from agents
+- Do not log pure discussion, exploration, reading, or failed attempts
 
 ## Heartbeat sync workflow
 
@@ -134,7 +140,7 @@ At end of day or next-day rollover:
 ## Scripts
 
 - `scripts/append_ai_log.js` — appends one JSONL AI work record to today's per-agent log
-- `scripts/install_agent_log_rules.js` — installs or updates managed AI log rule blocks in configured `AGENTS.md` files
+- `scripts/install_agent_log_rules.js` — installs or updates managed AI log rule blocks in configured `AGENTS.md` files; supports `--dry-run` and `--agent <name>`
 - `scripts/install_summary_crons.js` — optionally installs or updates template-driven notification cron jobs from `notifications.summaryCrons` in config; these jobs supplement rollover and do not replace it
 - `scripts/init_system.js` — creates missing dashboard, history, config, state files, today's empty AI logs, and installs managed agent log rules when configured; it does not install cron jobs by default
 - `scripts/repair_system.js` — repairs missing runtime files without overwriting healthy ones
@@ -173,6 +179,19 @@ Install or refresh agent rules:
 
 ```bash
 AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_agent_log_rules.js
+```
+
+Preview only:
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_agent_log_rules.js --dry-run
+```
+
+Refresh one or more specific agents:
+
+```bash
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_agent_log_rules.js --agent main
+AI_WORKLOG_CONFIG=/absolute/path/to/todo/system/config.json node <skill-dir>/scripts/install_agent_log_rules.js --agent main,cortex
 ```
 
 Optionally install or update summary cron jobs after filling `notifications.summaryCrons` in config:

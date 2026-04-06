@@ -9,9 +9,11 @@ Use this checklist when installing the system into a new vault or workspace.
 5. Create `todo/system/sync-state.json` from `references/sync-state-template.json`
 6. Create empty today log files for each enabled agent:
    - `<reportsDir>/<agent>-ai-log-YYYY-MM-DD.jsonl`
-7. Set each agent's `agentsFilePath` in config and run `scripts/install_agent_log_rules.js`
-8. Confirm each agent's `AGENTS.md` contains the managed AI log rule block
-9. Update the coordinator heartbeat to run `scripts/sync_ai_done.js`
-10. Run one manual sync test
-11. Confirm `NOW.md` and `sync-state.json` both update correctly
-12. Optional: if the installation wants scheduled summaries, fill `notifications.summaryCrons` and run `scripts/install_summary_crons.js`
+7. Set each agent's `agentsFilePath` in config
+8. Run `scripts/init_system.js` and confirm it installs or refreshes managed AGENTS rules automatically
+9. Confirm each agent's `AGENTS.md` contains the managed reply-before-log rule block
+10. Update the coordinator heartbeat to run `scripts/sync_ai_done.js`
+11. Run one manual sync test
+12. Confirm `NOW.md` and `sync-state.json` both update correctly
+13. Optional: if the installation wants scheduled summaries, fill `notifications.summaryCrons` and run `scripts/install_summary_crons.js`
+14. When adding a new agent later, add it to config and rerun `scripts/install_agent_log_rules.js` (use `--agent <name>` if needed)
