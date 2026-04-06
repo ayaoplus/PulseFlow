@@ -148,6 +148,7 @@ function buildMiddayMessage({ paths, config, summary, archives }) {
     `Read today's enabled-agent AI logs using these path patterns:\n${logHints || '- (none configured)'}`,
     statusHints ? `If these optional same-day status files exist, use them only as supplementary context:\n${statusHints}` : 'Optional agent status files may be used only if they exist.',
     'Read current OpenClaw usage data for today when needed (for example via openclaw gateway usage-cost --days 1 --json).',
+    'When reading NOW.md, treat every explicit `- [x]` item under FOCUS, TODAY, UP NEXT, or DONE as completed progress. Do not assume only DONE counts as done. If a checked item still sits in an active section, count it as completed and optionally call out the board-hygiene issue.',
     'Stay inside the PulseFlow runtime only. Do not read old task systems, migration leftovers, or unrelated registries.',
     'Generate one midday summary using the template structure, but write naturally and with judgment.',
     `Write the final markdown body to ${path.join(archives.midday, 'YYYY-MM-DD.md')} using today\'s date.`,
