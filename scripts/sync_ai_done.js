@@ -20,6 +20,21 @@ const {
 } = require('./_usage_panel');
 
 const AI_HEADER = '## AI DONE TODAY';
+
+function isMaintenanceOnlyTask(agent, task) {
+  if (String(agent || '').trim() !== 'ayao') {
+    return false;
+  }
+
+  const text = String(task || '').trim();
+  if (!text) return false;
+
+  const hasMaintenanceTopic = /(heartbeat|心跳|AI USAGE THIS WEEK|AI DONE TODAY|AI 汇总|sync-state|sync-state\.json|NOW\.md 的 AI 汇总)/i.test(text);
+  const hasRealDeliverable = /(归档|日报|日切|config\.json|配置|修复|初始化|安装|发布|接入|迁移|新增|创建|补全|清理)/i.test(text);
+
+  return hasMaintenanceTopic && !hasRealDeliverable;
+}
+
 function parseJsonl(logPath, expectedAgent, expectedDate) {
   if (!exists(logPath)) {
     return [];
@@ -44,7 +59,7 @@ function parseJsonl(logPath, expectedAgent, expectedDate) {
     const ts = String(obj.ts || '').trim();
     const tokens = Number.isFinite(Number(obj.tokens)) ? Math.max(0, parseInt(obj.tokens, 10) || 0) : 0;
 
-    if (agent !== expectedAgent || !task || !ts.includes(expectedDate)) {
+    if (agent !== expectedAgent || !task || !ts.includes(expectedDate) || isMaintenanceOnlyTask(agent, task)) {
       continue;
     }
 
