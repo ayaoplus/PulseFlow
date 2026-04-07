@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+const fs = require('fs');
 const path = require('path');
 const {
   buildDefaultSyncState,
@@ -17,6 +18,7 @@ const {
   todayUsage,
   usageSummary,
   weeklyRows,
+  missingUsageDatesFromLogs,
 } = require('./_usage_panel');
 
 const AI_HEADER = '## AI DONE TODAY';
@@ -76,6 +78,26 @@ function parseJsonl(logPath, expectedAgent, expectedDate) {
   return items;
 }
 
+function scanAgentLogDates(reportsDir, agentName) {
+  if (!reportsDir || !exists(reportsDir)) {
+    return [];
+  }
+
+  const prefix = `${agentName}-ai-log-`;
+  const suffix = '.jsonl';
+  const dates = [];
+
+  for (const name of fs.readdirSync(reportsDir)) {
+    if (!name.startsWith(prefix) || !name.endsWith(suffix)) continue;
+    const date = name.slice(prefix.length, -suffix.length);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      dates.push(date);
+    }
+  }
+
+  return dates;
+}
+
 function buildAiSection(items, usage) {
   const lines = [AI_HEADER];
 
@@ -126,6 +148,7 @@ function main() {
 
   const allItems = [];
   const agentState = {};
+  const agentLogDates = new Set();
 
   for (const agent of config.agents || []) {
     if (!agent || agent.enabled === false || !agent.name || !agent.reportsDir) {
@@ -135,6 +158,9 @@ function main() {
     const logPath = path.join(agent.reportsDir, `${agent.name}-ai-log-${today}.jsonl`);
     const items = parseJsonl(logPath, agent.name, today);
     allItems.push(...items);
+    for (const date of scanAgentLogDates(agent.reportsDir, agent.name)) {
+      agentLogDates.add(date);
+    }
     agentState[agent.name] = {
       lastFile: exists(logPath) ? logPath : null,
       lastLine: items.length ? items[items.length - 1].line : 0,
@@ -145,7 +171,8 @@ function main() {
   const nowText = exists(dashboardPath) ? readText(dashboardPath) : defaultNowContent(paths);
   const usage = usageSummary(14);
   const todayUsageStats = todayUsage(usage, today);
-  const usageSection = buildUsageSection(weeklyRows(usage, today));
+  const missingDates = missingUsageDatesFromLogs(usage, today, Array.from(agentLogDates));
+  const usageSection = buildUsageSection(weeklyRows(usage, today, { missingDates }));
   const aiSection = buildAiSection(allItems, todayUsageStats);
   const withUsage = replaceUsageSection(nowText, usageSection);
   const nextText = replaceAiSection(withUsage, aiSection);
@@ -167,6 +194,7 @@ function main() {
     date: today,
     items: allItems.length,
     total_tokens: todayUsageStats.totalTokens,
+    missing_usage_dates: missingDates,
     dashboard: dashboardPath,
     sync_state: syncStatePath,
   }, null, 2)}\n`);

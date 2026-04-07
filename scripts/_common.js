@@ -1,8 +1,28 @@
 const fs = require('fs');
 const path = require('path');
+const os = require('os');
 
-const FALLBACK_ROOT = process.env.AI_WORKLOG_ROOT || path.resolve(process.cwd(), 'todo');
 const DEFAULT_TIME_ZONE = process.env.AI_WORKLOG_TIMEZONE || 'Asia/Shanghai';
+
+function preferredConfiguredRoot() {
+  const candidates = [
+    process.env.AI_WORKLOG_ROOT,
+    path.join(os.homedir(), 'Library', 'Mobile Documents', 'iCloud~md~obsidian', 'Documents', 'cortex', 'todo'),
+    path.resolve(process.cwd(), 'todo'),
+  ].filter(Boolean);
+
+  for (const candidate of candidates) {
+    const resolved = path.resolve(candidate);
+    const configPath = path.join(resolved, 'system', 'config.json');
+    if (fs.existsSync(configPath)) {
+      return resolved;
+    }
+  }
+
+  return path.resolve(process.cwd(), 'todo');
+}
+
+const FALLBACK_ROOT = preferredConfiguredRoot();
 const DEFAULT_REPORT_DIRS = {
   main: process.env.AI_WORKLOG_MAIN_REPORTS || '/ABSOLUTE/PATH/TO/reports',
   cortex: process.env.AI_WORKLOG_CORTEX_REPORTS || '/ABSOLUTE/PATH/TO/reports',
@@ -13,7 +33,7 @@ function deriveRuntimePaths() {
   const skillDir = process.env.AI_WORKLOG_SKILL_DIR || path.resolve(__dirname, '..');
   const configPath = process.env.AI_WORKLOG_CONFIG
     ? path.resolve(process.env.AI_WORKLOG_CONFIG)
-    : path.join(path.resolve(process.env.AI_WORKLOG_ROOT || FALLBACK_ROOT), 'system', 'config.json');
+    : path.join(FALLBACK_ROOT, 'system', 'config.json');
   const systemDir = path.dirname(configPath);
   const rootDir = path.dirname(systemDir);
 

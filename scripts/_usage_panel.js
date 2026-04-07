@@ -73,6 +73,7 @@ function summarizeDay(entry = {}) {
     rawTotalTokens: Number(entry.totalTokens || 0),
     totalCost: Number(entry.totalCost || 0),
     hitRate: hitRate({ input, cacheRead }),
+    missing: false,
   };
 }
 
@@ -95,12 +96,20 @@ function usageMap(summary) {
   return map;
 }
 
-function weeklyRows(summary, anchorDate) {
+function weeklyRows(summary, anchorDate, options = {}) {
   const map = usageMap(summary);
-  return weekDates(anchorDate).map((date) => ({
-    date,
-    ...(map.get(date) || summarizeDay({})),
-  }));
+  const missingDates = new Set(options.missingDates || []);
+  return weekDates(anchorDate).map((date) => {
+    const row = map.get(date);
+    if (row) {
+      return { date, ...row, missing: false };
+    }
+    return {
+      date,
+      ...summarizeDay({}),
+      missing: missingDates.has(date),
+    };
+  });
 }
 
 function rowsTotal(rows) {
@@ -137,10 +146,14 @@ function buildUsageSection(rows) {
   ];
 
   for (const row of rows) {
+    if (row.missing) {
+      lines.push(`| ${row.date} | pending | pending | pending | pending | pending |`);
+      continue;
+    }
     lines.push(`| ${row.date} | ${formatInt(row.totalTokens)} | ${formatInt(row.input)} | ${formatInt(row.output)} | ${formatInt(row.cache)} | ${row.hitRate} |`);
   }
 
-  const total = rowsTotal(rows);
+  const total = rowsTotal(rows.filter((row) => !row.missing));
   lines.push(`| **Week Total** | **${formatInt(total.totalTokens)}** | **${formatInt(total.input)}** | **${formatInt(total.output)}** | **${formatInt(total.cache)}** | **${total.hitRate}** |`);
   lines.push('', '---');
   return `${lines.join('\n')}\n`;
@@ -241,6 +254,12 @@ function todayUsage(summary, today) {
   return usageMap(summary).get(today) || summarizeDay({});
 }
 
+function missingUsageDatesFromLogs(summary, anchorDate, agentLogDates = []) {
+  const usageDates = new Set((summary.daily || []).map((item) => item.date));
+  const week = new Set(weekDates(anchorDate));
+  return [...new Set(agentLogDates.filter((date) => week.has(date) && !usageDates.has(date)))].sort();
+}
+
 module.exports = {
   MONTHLY_DAILY_END,
   MONTHLY_DAILY_START,
@@ -257,4 +276,5 @@ module.exports = {
   weekDates,
   weekStart,
   weeklyRows,
+  missingUsageDatesFromLogs,
 };
