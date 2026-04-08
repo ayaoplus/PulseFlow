@@ -169,7 +169,7 @@ function main() {
 
   const dashboardPath = config.dashboardPath || paths.nowPath;
   const nowText = exists(dashboardPath) ? readText(dashboardPath) : defaultNowContent(paths);
-  const usage = usageSummary(14);
+  const usage = usageSummary(14, timeZone);
   const todayUsageStats = todayUsage(usage, today);
   const missingDates = missingUsageDatesFromLogs(usage, today, Array.from(agentLogDates));
   const usageSection = buildUsageSection(weeklyRows(usage, today, { missingDates }));

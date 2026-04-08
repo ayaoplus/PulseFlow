@@ -1,4 +1,4 @@
-const cp = require('child_process');
+const fs = require('fs');
 const path = require('path');
 const {
   ensureFile,
@@ -77,15 +77,173 @@ function summarizeDay(entry = {}) {
   };
 }
 
-function usageSummary(days = 14) {
+function parseUsageEntry(raw) {
+  if (!raw || typeof raw !== 'object') return null;
+  if (raw.type !== 'message') return null;
+
+  const message = raw.message;
+  if (!message || typeof message !== 'object' || message.role !== 'assistant') {
+    return null;
+  }
+
+  const usage = message.usage;
+  if (!usage || typeof usage !== 'object') return null;
+
+  const timestamp = raw.timestamp || message.timestamp || raw.createdAt || message.createdAt;
+  const date = timestamp ? new Date(timestamp) : null;
+  if (!date || Number.isNaN(date.getTime())) return null;
+
+  const input = Number(usage.input || 0);
+  const output = Number(usage.output || 0);
+  const cacheRead = Number(usage.cacheRead || 0);
+  const cacheWrite = Number(usage.cacheWrite || 0);
+  const totalTokens = typeof usage.totalTokens === 'number'
+    ? usage.totalTokens
+    : (typeof usage.total === 'number' ? usage.total : input + output + cacheRead + cacheWrite);
+  const cost = usage.cost && typeof usage.cost === 'object' ? usage.cost : {};
+
+  return {
+    date,
+    input,
+    output,
+    cacheRead,
+    cacheWrite,
+    totalTokens,
+    totalCost: Number(cost.total || 0),
+    inputCost: Number(cost.input || 0),
+    outputCost: Number(cost.output || 0),
+    cacheReadCost: Number(cost.cacheRead || 0),
+    cacheWriteCost: Number(cost.cacheWrite || 0),
+    missingCostEntries: 0,
+  };
+}
+
+function accumulateUsage(target, entry) {
+  target.input += entry.input;
+  target.output += entry.output;
+  target.cacheRead += entry.cacheRead;
+  target.cacheWrite += entry.cacheWrite;
+  target.totalTokens += entry.totalTokens;
+  target.totalCost += entry.totalCost;
+  target.inputCost += entry.inputCost;
+  target.outputCost += entry.outputCost;
+  target.cacheReadCost += entry.cacheReadCost;
+  target.cacheWriteCost += entry.cacheWriteCost;
+  target.missingCostEntries += entry.missingCostEntries;
+}
+
+function emptyUsageBucket() {
+  return {
+    input: 0,
+    output: 0,
+    cacheRead: 0,
+    cacheWrite: 0,
+    totalTokens: 0,
+    totalCost: 0,
+    inputCost: 0,
+    outputCost: 0,
+    cacheReadCost: 0,
+    cacheWriteCost: 0,
+    missingCostEntries: 0,
+  };
+}
+
+function transcriptRootsFromConfig() {
+  const roots = new Set();
+  const stateDir = process.env.OPENCLAW_STATE_DIR
+    ? path.resolve(process.env.OPENCLAW_STATE_DIR)
+    : path.join(process.env.HOME || '', '.openclaw');
+  if (stateDir) roots.add(stateDir);
+  return [...roots].filter(Boolean);
+}
+
+function collectTranscriptFiles(rootDir, cutoffMs) {
+  const result = [];
+  const stack = [rootDir];
+
+  while (stack.length) {
+    const current = stack.pop();
+    let entries = [];
+    try {
+      entries = fs.readdirSync(current, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+
+    for (const entry of entries) {
+      const fullPath = path.join(current, entry.name);
+      if (entry.isDirectory()) {
+        stack.push(fullPath);
+        continue;
+      }
+      if (!entry.isFile() || !entry.name.endsWith('.jsonl')) continue;
+      if (!/session/i.test(fullPath)) continue;
+      try {
+        const stat = fs.statSync(fullPath);
+        if (stat.mtimeMs >= cutoffMs) {
+          result.push(fullPath);
+        }
+      } catch {}
+    }
+  }
+
+  return result;
+}
+
+function usageSummary(days = 14, timeZone = process.env.AI_WORKLOG_TIMEZONE || 'Asia/Shanghai') {
   if (process.env.AI_WORKLOG_USAGE_JSON && exists(process.env.AI_WORKLOG_USAGE_JSON)) {
     return JSON.parse(readText(process.env.AI_WORKLOG_USAGE_JSON));
   }
 
-  const raw = cp.execFileSync('openclaw', ['gateway', 'usage-cost', '--days', String(days), '--json'], {
-    encoding: 'utf8',
-  });
-  return JSON.parse(raw);
+  const now = new Date();
+  const start = new Date(now);
+  start.setDate(start.getDate() - (Math.max(1, days) - 1));
+  start.setHours(0, 0, 0, 0);
+  const cutoffMs = start.getTime();
+
+  const dailyMap = new Map();
+  const totals = emptyUsageBucket();
+
+  for (const root of transcriptRootsFromConfig()) {
+    const files = collectTranscriptFiles(root, cutoffMs);
+    for (const filePath of files) {
+      let lines = [];
+      try {
+        lines = readText(filePath).split(/\r?\n/);
+      } catch {
+        continue;
+      }
+      for (const line of lines) {
+        const raw = line.trim();
+        if (!raw) continue;
+        let parsed;
+        try {
+          parsed = JSON.parse(raw);
+        } catch {
+          continue;
+        }
+        const entry = parseUsageEntry(parsed);
+        if (!entry) continue;
+        if (entry.date.getTime() < cutoffMs) continue;
+        const dayKey = formatDateInTimeZone(entry.date, timeZone);
+        const bucket = dailyMap.get(dayKey) || emptyUsageBucket();
+        accumulateUsage(bucket, entry);
+        dailyMap.set(dayKey, bucket);
+        accumulateUsage(totals, entry);
+      }
+    }
+  }
+
+  const daily = [...dailyMap.entries()]
+    .map(([date, bucket]) => ({ date, ...bucket }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+
+  return {
+    updatedAt: Date.now(),
+    days,
+    daily,
+    totals,
+  };
 }
 
 function usageMap(summary) {

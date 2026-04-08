@@ -32,6 +32,12 @@ function write(filePath, content) {
   fs.writeFileSync(filePath, content, 'utf8');
 }
 
+function appendJsonl(filePath, entries) {
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  const lines = entries.map((entry) => JSON.stringify(entry)).join('\n');
+  fs.appendFileSync(filePath, `${lines}\n`, 'utf8');
+}
+
 function read(filePath) {
   return fs.readFileSync(filePath, 'utf8');
 }
@@ -72,68 +78,48 @@ function main() {
     AI_WORKLOG_TIMEZONE: 'Asia/Shanghai',
   };
 
-  const initResult = runScript('init_system.js', env);
-  assert(initResult.ok === true, 'init_system.js did not return ok=true');
-
   const systemDir = path.join(tempRoot, 'system');
-  const configPath = path.join(systemDir, 'config.json');
-  const syncStatePath = path.join(systemDir, 'sync-state.json');
-  const rolloverStatePath = path.join(systemDir, 'rollover-state.json');
-  const dashboardPath = path.join(tempRoot, 'NOW.md');
   const historyDir = path.join(tempRoot, 'history');
+  const dashboardPath = path.join(tempRoot, 'NOW.md');
   const reportsDir = path.join(tempRoot, 'reports');
   const mainAgentsPath = path.join(tempRoot, 'main-AGENTS.md');
   const cortexAgentsPath = path.join(tempRoot, 'cortex-AGENTS.md');
   const tradingAgentsPath = path.join(tempRoot, 'trading-AGENTS.md');
-  const usageFixturePath = path.join(tempRoot, 'usage-summary.json');
+  write(mainAgentsPath, '# Main AGENTS\n');
+  write(cortexAgentsPath, '# Cortex AGENTS\n');
+  write(tradingAgentsPath, '# Trading AGENTS\n');
+  write(path.join(tempRoot, 'system', 'config.json'), `${JSON.stringify({
+    version: 1,
+    timezone: 'Asia/Shanghai',
+    dashboardPath,
+    historyDir,
+    syncStatePath: path.join(systemDir, 'sync-state.json'),
+    agents: [
+      { name: 'main', enabled: true, reportsDir, agentsFilePath: mainAgentsPath },
+      { name: 'cortex', enabled: true, reportsDir, agentsFilePath: cortexAgentsPath },
+      { name: 'trading', enabled: false, reportsDir, agentsFilePath: tradingAgentsPath },
+    ],
+  }, null, 2)}\n`);
+
+  const initResult = runScript('init_system.js', env);
+  assert(initResult.ok === true, 'init_system.js did not return ok=true');
+
+  const configPath = path.join(systemDir, 'config.json');
+  const syncStatePath = path.join(systemDir, 'sync-state.json');
+  const rolloverStatePath = path.join(systemDir, 'rollover-state.json');
+  const stateDir = path.join(tempRoot, '.openclaw-state');
   const today = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Shanghai',
     year: 'numeric',
     month: '2-digit',
     day: '2-digit',
   }).format(new Date());
-  const currentWeek = Array.from({ length: 7 }, (_, index) => shiftDate(weekStart(today), index));
-  const usageFixture = {
-    updatedAt: Date.now(),
-    days: 14,
-    daily: currentWeek.map((date) => ({
-      date,
-      input: date === today ? 100 : 0,
-      output: date === today ? 150 : 0,
-      cacheRead: date === today ? 50 : 0,
-      cacheWrite: date === today ? 200 : 0,
-      totalTokens: date === today ? 500 : 0,
-      totalCost: 0,
-      inputCost: 0,
-      outputCost: 0,
-      cacheReadCost: 0,
-      cacheWriteCost: 0,
-      missingCostEntries: 0,
-    })),
-    totals: {
-      input: 100,
-      output: 150,
-      cacheRead: 50,
-      cacheWrite: 200,
-      totalTokens: 500,
-      totalCost: 0,
-      inputCost: 0,
-      outputCost: 0,
-      cacheReadCost: 0,
-      cacheWriteCost: 0,
-      missingCostEntries: 0,
-    },
-  };
-  write(usageFixturePath, `${JSON.stringify(usageFixture, null, 2)}\n`);
-  const envWithUsage = { ...env, AI_WORKLOG_USAGE_JSON: usageFixturePath };
+  const envWithUsage = { ...env, OPENCLAW_STATE_DIR: stateDir };
 
   const config = JSON.parse(read(configPath));
   const initHistoryPath = path.join(historyDir, `${today.slice(0, 7)}.md`);
   const initHistoryText = read(initHistoryPath);
   assert(initHistoryText.trim() === `# History - ${today.slice(0, 7)}`, 'init_system.js should create an empty month history shell');
-  write(mainAgentsPath, '# Main AGENTS\n');
-  write(cortexAgentsPath, '# Cortex AGENTS\n');
-  write(tradingAgentsPath, '# Trading AGENTS\n');
 
   config.agents = [
     { name: 'main', enabled: true, reportsDir, agentsFilePath: mainAgentsPath },
@@ -148,7 +134,7 @@ function main() {
   const customRolloverStatePath = path.join(path.dirname(config.syncStatePath), 'rollover-state.json');
   fs.renameSync(rolloverStatePath, customRolloverStatePath);
   const initReplay = runScript('init_system.js', { ...envWithUsage, AI_WORKLOG_CONFIG: configPath });
-  assert(initReplay.ruleInstallResults.some((item) => item.agent === 'main' && item.status === 'updated'), 'init_system.js should install main AGENTS rule');
+  assert(initReplay.ruleInstallResults.some((item) => item.agent === 'main' && ['updated', 'unchanged'].includes(item.status)), 'init_system.js should install main AGENTS rule');
   assert(fs.existsSync(path.join(reportsDir, `main-ai-log-${today}.jsonl`)), 'init_system.js should create today main log file');
   assert(read(mainAgentsPath).includes('AI_WORKLOG_RULE_START'), 'main AGENTS missing managed AI log block');
   assert(read(mainAgentsPath).includes('先记账，后回复'), 'managed AI log block should install the reply-before-log rule');
@@ -170,6 +156,28 @@ function main() {
     '--tokens', '120',
     '--ts', `${today}T09:00:00+08:00`,
   ], envWithUsage);
+  const transcriptDir = path.join(stateDir, 'agents', 'main', 'sessions');
+  appendJsonl(path.join(transcriptDir, 'session-usage-main.jsonl'), [{
+    type: 'message',
+    timestamp: `${today}T09:00:10+08:00`,
+    message: {
+      role: 'assistant',
+      usage: {
+        input: 100,
+        output: 150,
+        cacheRead: 50,
+        cacheWrite: 200,
+        totalTokens: 500,
+        cost: {
+          total: 0,
+          input: 0,
+          output: 0,
+          cacheRead: 0,
+          cacheWrite: 0,
+        },
+      },
+    },
+  }]);
   fs.appendFileSync(path.join(reportsDir, `main-ai-log-${today}.jsonl`), '{bad json}\n', 'utf8');
   runScriptArgs('append_ai_log.js', [
     '--agent', 'main',

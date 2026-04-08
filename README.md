@@ -130,7 +130,7 @@ Example:
 
 - reads `config.json`
 - reads today's agent logs
-- queries OpenClaw usage summary
+- scans OpenClaw session transcripts for assistant message usage and aggregates by local day
 - rebuilds `AI USAGE THIS WEEK`
 - rebuilds `AI DONE TODAY`
 - updates `sync-state.json`
@@ -152,7 +152,9 @@ Example:
 PulseFlow intentionally separates:
 
 - **what AI did** → agent logs
-- **how much usage happened** → OpenClaw usage summary
+- **how much usage happened** → assistant message usage inside OpenClaw session transcripts
+
+Current live usage table reads assistant message `usage` directly from OpenClaw session transcripts and aggregates it in the configured timezone (default `Asia/Shanghai`). This avoids day-boundary drift from gateway-side daily summaries.
 
 Current live usage table uses:
 
