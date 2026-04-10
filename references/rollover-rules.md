@@ -12,6 +12,5 @@ Run a daily rollover at 00:05 Asia/Shanghai.
    - `- 暂无`
 6. Move all unfinished `FOCUS` and unfinished `TODAY` items into the new day's `TODAY`.
 7. Keep unfinished `UP NEXT` unchanged.
-8. Keep `ITERATION NOTES` unchanged and carry it forward verbatim. Treat it as a persistent notes area for future directions, constraints, or ideas — not as a task list.
-9. Reset `FOCUS` to empty placeholder.
-10. Record `lastRolloverDate` in `todo/system/rollover-state.json` so rollover is idempotent.
+8. Reset `FOCUS` to empty placeholder.
+9. Record `lastRolloverDate` in `todo/system/rollover-state.json` so rollover is idempotent.

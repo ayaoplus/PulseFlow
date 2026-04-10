@@ -9,7 +9,6 @@ Required sections:
 - `## FOCUS`
 - `## TODAY`
 - `## UP NEXT`
-- `## ITERATION NOTES`
 - `## DONE`
 - `## AI DONE TODAY`
 
@@ -29,20 +28,6 @@ AI section format:
 ## AI DONE TODAY
 - main: 完成某项工作
 ```
-
-Iteration notes section format:
-
-```md
-## ITERATION NOTES
-- 对未来迭代方向的备注
-- 暂不转成任务，但需要保留
-```
-
-Rules for `ITERATION NOTES`:
-- use it for future directions, constraints, design notes, or loose ideas
-- do not treat it as a task list
-- do not auto-move it into `DONE`
-- keep it unchanged during sync and rollover unless the human edits it directly
 
 ## History
 

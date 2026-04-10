@@ -26,7 +26,6 @@ The human or coordinator edits:
 - `TODAY`
 - `UP NEXT`
 - `DONE`
-- `ITERATION NOTES` for future-direction notes, constraints, or ideas that should persist across days without being treated as tasks
 
 ### AI side
 Execution agents use the managed reply-before-log rule block inside `AGENTS.md`.
@@ -46,7 +45,7 @@ The script:
 
 - reads config
 - reads today's logs
-- queries OpenClaw usage summary
+- scans OpenClaw session transcripts for assistant message usage and aggregates by local day
 - rebuilds `AI USAGE THIS WEEK`
 - rebuilds `AI DONE TODAY`
 - updates `sync-state.json`
@@ -70,7 +69,6 @@ The rollover script:
 - rebuilds weekly usage for the new current week
 - moves unfinished `FOCUS` + `TODAY` into the new day's `TODAY`
 - keeps unfinished `UP NEXT`
-- keeps `ITERATION NOTES` unchanged
 - clears `FOCUS`
 - writes `rollover-state.json`
 

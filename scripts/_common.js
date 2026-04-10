@@ -113,7 +113,7 @@ function defaultNowContent(paths) {
   if (exists(templatePath)) {
     return readText(templatePath);
   }
-  return '## AI USAGE THIS WEEK\n| Date | Total Tokens | Input | Output | Cache | Hit Rate |\n| --- | ---: | ---: | ---: | ---: | ---: |\n| 2026-04-07 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-08 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-09 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-10 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-11 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-12 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-13 | 0 | 0 | 0 | 0 | 0.0% |\n| **Week Total** | **0** | **0** | **0** | **0** | **0.0%** |\n\n---\n## FOCUS\n- [ ]\n\n## TODAY\n- [ ]\n\n## UP NEXT\n- [ ]\n\n## DONE\n- [x]\n\n---\n## ITERATION NOTES\n- 暂无\n\n---\n## AI DONE TODAY\n- 暂无\n';
+  return '## AI USAGE THIS WEEK\n| Date | Total Tokens | Input | Output | Cache | Hit Rate |\n| --- | ---: | ---: | ---: | ---: | ---: |\n| 2026-04-07 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-08 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-09 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-10 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-11 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-12 | 0 | 0 | 0 | 0 | 0.0% |\n| 2026-04-13 | 0 | 0 | 0 | 0 | 0.0% |\n| **Week Total** | **0** | **0** | **0** | **0** | **0.0%** |\n\n---\n## FOCUS\n- [ ]\n\n## TODAY\n- [ ]\n\n## UP NEXT\n- [ ]\n\n## DONE\n- [x]\n\n---\n## AI DONE TODAY\n- 暂无\n';
 }
 
 function defaultHistoryMonthContent(paths, month, date) {

@@ -107,19 +107,6 @@ If agents wrote directly to the dashboard:
 
 By rebuilding from logs and OpenClaw usage summaries, the dashboard stays stable.
 
-## Why PulseFlow keeps `ITERATION NOTES` separate from task lists
-
-Future-direction notes, design reminders, and loose constraints are useful, but they should not pollute the executable task lists.
-
-PulseFlow therefore keeps one dedicated `ITERATION NOTES` section inside `NOW.md`:
-
-- persistent across sync and rollover
-- human-edited directly
-- not interpreted as pending or completed tasks
-- useful as context, not as a checklist
-
-This keeps `FOCUS / TODAY / UP NEXT / DONE` clean while still giving the dashboard one stable place for forward-looking notes.
-
 ## Why rollover is cron-based
 
 Day-boundary state changes are deterministic and should not depend on heartbeat timing.

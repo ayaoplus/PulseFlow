@@ -232,10 +232,6 @@ function main() {
     '- [ ] 下周再做',
     '- [x] 不常见但已完成',
     '',
-    '## ITERATION NOTES',
-    '- 保留这条未来迭代备注',
-    '- 这里不当任务处理',
-    '',
     '## DONE',
     '- [x] 原 DONE 事项',
     '',
@@ -254,7 +250,6 @@ function main() {
   assert(rolledDashboard.includes('## TODAY\n- [ ] 保留到明天\n- [ ] 今日未完成'), 'rollover did not carry pending FOCUS/TODAY into TODAY');
   assert(!rolledDashboard.includes('## TODAY\n- [ ]\n- [ ] 保留到明天'), 'rollover should not carry placeholder checkboxes into TODAY');
   assert(rolledDashboard.includes('## UP NEXT\n- [ ] 下周再做'), 'rollover did not preserve pending UP NEXT');
-  assert(rolledDashboard.includes('## ITERATION NOTES\n- 保留这条未来迭代备注\n- 这里不当任务处理'), 'rollover did not preserve iteration notes verbatim');
   assert(rolledDashboard.includes('## AI DONE TODAY\n- 暂无'), 'rollover did not reset AI DONE TODAY');
   const historyMonthPath = path.join(historyDir, `${rolloverFirst.archivedDate.slice(0, 7)}.md`);
   const historyText = read(historyMonthPath);
@@ -267,7 +262,6 @@ function main() {
   assert(historyText.includes('- [x] 原 DONE 事项'), 'history missing archived DONE item');
   assert(historyText.includes('- [x] 已完成焦点任务'), 'history missing archived FOCUS item');
   assert(historyText.includes('- main: 完成 JS 同步脚本'), 'history missing AI snapshot');
-  assert(!historyText.includes('保留这条未来迭代备注'), 'history should not archive iteration notes');
   assert(!historyText.includes('## AI Usage Daily Summary'), 'history should no longer contain the old monthly daily usage summary block');
 
   const rolloverSecond = runScript('rollover_now.js', { ...envWithUsage, AI_WORKLOG_CONFIG: configPath });
