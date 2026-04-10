@@ -95,15 +95,7 @@ function buildNow(preamble, usageSection, todayPending, upNextPending) {
     out.push(pre);
   }
 
-  out.push(usageSection.trimEnd(), '');
-
-  out.push(
-    '## FOCUS',
-    '',
-    '- [ ]',
-    '',
-    '## TODAY',
-  );
+  out.push(usageSection.trimEnd(), '', '## FOCUS', '', '- [ ]', '', '## TODAY');
 
   if (todayPending.length) {
     out.push(...todayPending);
@@ -118,17 +110,8 @@ function buildNow(preamble, usageSection, todayPending, upNextPending) {
     out.push('- [ ]');
   }
 
-  out.push(
-    '',
-    '## DONE',
-    '',
-    '- [x]',
-    '',
-    '---',
-    '## AI DONE TODAY',
-    '- 暂无',
-    '',
-  );
+  out.push('', '## DONE', '', '- [x]', '', '---', '', '## AI DONE TODAY', '');
+  out.push('- 暂无', '');
 
   return out.join('\n');
 }
